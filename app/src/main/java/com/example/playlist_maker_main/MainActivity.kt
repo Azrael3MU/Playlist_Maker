@@ -9,7 +9,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.playlist_maker_main.LibraryActivity
 import com.example.playlist_maker_main.R
+import com.example.playlist_maker_main.SearchActivity
+import com.example.playlist_maker_main.SettingsActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,17 +22,17 @@ class MainActivity : AppCompatActivity() {
         val library_btn = findViewById<Button>(R.id.library)
         val settings_btn = findViewById<Button>(R.id.settings)
 
-        val searchClickListener: View.OnClickListener = object : View.OnClickListener{
-            override fun onClick(v: View?) {
-                Toast.makeText(this@MainActivity, "Нажал на поиск!", Toast.LENGTH_SHORT).show()
-            }
+        search_btn.setOnClickListener{
+            val searchIntent = Intent(this, SearchActivity::class.java)
+            startActivity(searchIntent)
         }
-        search_btn.setOnClickListener(searchClickListener)
         library_btn.setOnClickListener {
-            Toast.makeText(this@MainActivity, "Нажал на медиатеку!", Toast.LENGTH_SHORT).show()
+            val libraryIntent = Intent(this, LibraryActivity::class.java)
+            startActivity(libraryIntent)
         }
         settings_btn.setOnClickListener{
-            Toast.makeText(this@MainActivity, "Нажал на настройки!",Toast.LENGTH_SHORT).show()
+            val settingsIntent = Intent(this, SettingsActivity::class.java)
+            startActivity(settingsIntent)
         }
     }
 }
