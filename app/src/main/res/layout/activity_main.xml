@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/YPBlue"
+    android:padding="20dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/app_name"
+            android:textColor="#ffffff"
+            android:textSize="22sp"
+            android:fontFamily="@font/yp_d_regular"/>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/search"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:icon="@drawable/search_img"
+            app:iconTint="@color/black"
+            app:iconGravity="textStart"
+            android:backgroundTint="#ffffff"
+            android:text="@string/search"
+            android:textColor="#1A1B22"
+            android:fontFamily="@font/yp_d_regular"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textAllCaps="false"/>
+
+        <Button
+            android:id="@+id/library"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:icon="@drawable/library_img"
+            app:iconTint="@color/black"
+            app:iconGravity="textStart"
+            android:backgroundTint="#ffffff"
+            android:text="@string/media"
+            android:fontFamily="@font/yp_d_regular"
+            android:textAllCaps="false"
+            android:textSize="20sp"
+            android:textAlignment="center"
+            android:textColor="#1A1B22" />
+        <Button
+            android:id="@+id/settings"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:icon="@drawable/settings_img"
+            app:iconTint="@color/black"
+            app:iconGravity="textStart"
+            android:backgroundTint="#ffffff"
+            android:text="@string/settings"
+            android:fontFamily="@font/yp_d_regular"
+            android:textAllCaps="false"
+            android:textSize="20sp"
+            android:textAlignment="center"
+            android:textColor="#1A1B22" />
+    </LinearLayout>
+
+</LinearLayout>
