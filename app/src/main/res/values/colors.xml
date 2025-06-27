@@ -3,4 +3,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="YPBlue">#3772e7</color>
+    <color name="YPGrey">#E6E8EB</color>
+    <color name="YPTextGrey">#AEAFB4</color>
 </resources>

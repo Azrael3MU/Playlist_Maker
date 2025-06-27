@@ -23,8 +23,7 @@ class SettingsActivity : AppCompatActivity() {
 
 
         backBtn.setOnClickListener{
-            val backIntent = Intent(this, MainActivity::class.java)
-            startActivity(backIntent)
+            finish()
         }
         share.setOnClickListener{
             val shareIntent = Intent(Intent.ACTION_SEND)
