@@ -45,6 +45,7 @@
                 android:layout_height="wrap_content"/>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/share_app"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -60,6 +61,7 @@
                 android:layout_gravity="center"/>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/support_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -75,6 +77,7 @@
                 android:layout_gravity="center"/>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/agreement"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
