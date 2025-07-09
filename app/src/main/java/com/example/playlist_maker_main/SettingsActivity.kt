@@ -3,12 +3,14 @@ package com.example.playlist_maker_main
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 
 class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,6 +22,21 @@ class SettingsActivity : AppCompatActivity() {
         val shareMessaqe = getString(R.string.share_link)
         val supportBtn = findViewById<LinearLayout>(R.id.support_btn)
         val agreementBtn = findViewById<LinearLayout>(R.id.agreement)
+        val settingsRoot = findViewById<LinearLayout>(R.id.settingsRoot)
+
+        ViewCompat.setOnApplyWindowInsetsListener(settingsRoot) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or
+                        WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                left = bars.left + v.paddingLeft,
+                top = bars.top + v.paddingTop,
+                right = bars.right + v.paddingRight,
+                bottom = bars.bottom + v.paddingBottom
+            )
+            insets
+        }
 
 
         backBtn.setOnClickListener{
