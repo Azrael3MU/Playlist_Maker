@@ -1,6 +1,5 @@
 package com.example.playlist_maker_main
 
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -16,6 +15,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 
 class SearchActivity : AppCompatActivity() {
+
+    private lateinit var editText: EditText
+    private var currentSearchText: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -23,7 +26,7 @@ class SearchActivity : AppCompatActivity() {
 
         val searchRoot = findViewById<LinearLayout>(R.id.searchRoot)
         val backBtn = findViewById<ImageView>(R.id.back_button)
-        val editText = findViewById<EditText>(R.id.edit_text_id)
+        editText = findViewById(R.id.edit_text_id)
 
         val searchIcon = ContextCompat.getDrawable(this, R.drawable.search_mini_img)
         val clearIcon = ContextCompat.getDrawable(this, R.drawable.clear_search)
@@ -32,19 +35,17 @@ class SearchActivity : AppCompatActivity() {
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            view.updatePadding(
-                top = bars.top
-            )
+            view.updatePadding(top = bars.top)
             insets
         }
-
 
         backBtn.setOnClickListener { finish() }
 
         val searchTextWatcher = object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val clearIcon = if (s.isNullOrEmpty()) null else clearIcon
-                editText.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, clearIcon, null)
+                val clear = if (s.isNullOrEmpty()) null else clearIcon
+                editText.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, clear, null)
+                currentSearchText = s?.toString() ?: ""
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -70,5 +71,18 @@ class SearchActivity : AppCompatActivity() {
         }
 
         editText.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, null, null)
+    }
+
+    // Сохраняем текст при повороте экрана
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("SEARCH_TEXT", currentSearchText)
+    }
+
+    // Восстанавливаем текст после поворота
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        val restoredText = savedInstanceState.getString("SEARCH_TEXT", "")
+        editText.setText(restoredText)
     }
 }
