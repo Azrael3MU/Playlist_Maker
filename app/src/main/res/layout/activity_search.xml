@@ -1,38 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/searchRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     >
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:paddingLeft="12dp"
-        android:paddingBottom="12dp"
-        android:text="@string/search"
-        android:fontFamily="@font/yp_medium"
-        android:textColor="@color/black"
-        android:textSize="22sp"
-        android:textFontWeight="500" />
+        android:orientation="horizontal">
+        <ImageView
+            style="@style/SettingsBackStyle"
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginLeft="20dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/search"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="16dp"
+            style="@style/SettingsTitleTextStyle"
+            android:fontFamily="@font/yp_medium"
+            android:textSize="22sp"
+            android:textFontWeight="500"/>
+    </LinearLayout>
     <EditText
+        style="@style/SearchHintStyle"
+        android:id="@+id/edit_text_id"
         android:layout_width="match_parent"
         android:layout_height="36dp"
         android:layout_marginRight="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="8dp"
         android:paddingLeft="13dp"
+        android:paddingEnd="15dp"
         android:inputType="text"
         android:hint="@string/search"
-        android:textColorHint="@color/YPTextGrey"
         android:textSize="16sp"
         android:fontFamily="@font/yp_regular"
         android:textColor="@color/black"
         android:textFontWeight="400"
         android:background="@drawable/search_eadittext"
-        android:drawableStart="@drawable/search_mini_img"
         android:drawableRight="@drawable/clear_search"
         android:drawablePadding="8dp"/>
 </LinearLayout>
