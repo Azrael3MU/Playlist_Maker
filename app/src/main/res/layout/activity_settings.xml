@@ -1,48 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/settingsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="@color/white"
-    android:padding="20dp">
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
         <ImageView
+            style="@style/SettingsBackStyle"
             android:id="@+id/back_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/arrow_back_img"
-            android:layout_marginRight="12dp"/>
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginLeft="20dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/settings"
-            android:textColor="@color/black"
-            android:fontFamily="@font/yp_d_regular"
-            android:textSize="22sp"/>
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="16dp"
+            style="@style/SettingsTitleTextStyle"
+            android:fontFamily="@font/yp_medium"
+            android:textSize="22sp"
+            android:textFontWeight="500"/>
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="20dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="21dp"
         android:orientation="vertical">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="16sp"
+                style="@style/SettingsTextStyleLight"
                 android:text="@string/dark_theme"
-                android:textColor="@color/black"
-                android:fontFamily="@font/yp_d_regular"
                 android:paddingTop="21dp"
                 android:paddingBottom="21dp"/>
             <Switch
@@ -50,63 +51,51 @@
                 android:layout_height="wrap_content"/>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/share_app"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="16sp"
+                style="@style/SettingsTextStyleLight"
                 android:text="@string/share"
-                android:textColor="@color/black"
-                android:fontFamily="@font/yp_d_regular"
                 android:paddingTop="21dp"
                 android:paddingBottom="21dp"/>
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/share_img"
+                style="@style/SettingsIconShareStyle"
                 android:layout_gravity="center"/>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/support_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="16sp"
+                style="@style/SettingsTextStyleLight"
                 android:text="@string/support"
-                android:textColor="@color/black"
-                android:fontFamily="@font/yp_d_regular"
                 android:paddingTop="21dp"
                 android:paddingBottom="21dp"/>
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/support_img"
+                style="@style/SettingsIconSuppurtStyle"
                 android:layout_gravity="center"/>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/agreement"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="16sp"
+                style="@style/SettingsTextStyleLight"
                 android:text="@string/user_agreement"
-                android:textColor="@color/black"
-                android:fontFamily="@font/yp_d_regular"
                 android:paddingTop="21dp"
                 android:paddingBottom="21dp"/>
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/arrow_forvard_img"
+                style="@style/SettingsForvardStyle"
                 android:layout_gravity="center"/>
         </LinearLayout>
     </LinearLayout>
