@@ -17,6 +17,7 @@ import com.example.playlist_maker_main.SettingsActivity
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         val search_btn = findViewById<Button>(R.id.search)
         val library_btn = findViewById<Button>(R.id.library)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="MainButtonsStyleLight">
+    <style name="MainButtonsStyleLight" parent="Widget.MaterialComponents.Button.UnelevatedButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_height">0dp</item>
@@ -41,5 +41,9 @@
     </style>
     <style name="SettingsForvardStyle">
         <item name="android:src">@drawable/arrow_forvard_img</item>
+    </style>
+    <style name="SearchHintStyle">
+        <item name="android:textColorHint">@color/YPTextGrey</item>
+        <item name="android:drawableStart">@drawable/search_mini_img</item>
     </style>
 </resources>
