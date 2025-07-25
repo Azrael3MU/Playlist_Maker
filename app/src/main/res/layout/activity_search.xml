@@ -30,23 +30,33 @@
             android:textSize="22sp"
             android:textFontWeight="500"/>
     </LinearLayout>
-    <EditText
-        style="@style/SearchHintStyle"
-        android:id="@+id/edit_text_id"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:paddingLeft="13dp"
-        android:paddingEnd="15dp"
-        android:inputType="text"
-        android:hint="@string/search"
-        android:textSize="16sp"
-        android:fontFamily="@font/yp_regular"
-        android:textColor="@color/black"
-        android:textFontWeight="400"
-        android:background="@drawable/search_eadittext"
-        android:drawableRight="@drawable/clear_search"
-        android:drawablePadding="8dp"/>
+        android:layout_height="wrap_content">
+        <EditText
+            style="@style/SearchHintStyle"
+            android:id="@+id/edit_text_id"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginHorizontal="16dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="16dp"
+            android:inputType="text"
+            android:hint="@string/search"
+            android:textSize="16sp"
+            android:fontFamily="@font/yp_regular"
+            android:textColor="@color/black"
+            android:textFontWeight="400"
+            android:background="@drawable/search_eadittext"
+            android:drawablePadding="8dp"/>
+        <ImageView
+            android:id="@+id/clear_btn"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="22dp"
+            android:src="@drawable/clear_search"
+            android:visibility="gone"/>
+    </FrameLayout>
 </LinearLayout>

@@ -16,6 +16,10 @@ import androidx.core.view.updatePadding
 
 class SearchActivity : AppCompatActivity() {
 
+    companion object {
+        private const val SEARCH_TEXT_KEY = "SEARCH_TEXT"
+    }
+
     private lateinit var editText: EditText
     private var currentSearchText: String = ""
 
@@ -27,6 +31,7 @@ class SearchActivity : AppCompatActivity() {
         val searchRoot = findViewById<LinearLayout>(R.id.searchRoot)
         val backBtn = findViewById<ImageView>(R.id.back_button)
         editText = findViewById(R.id.edit_text_id)
+        val clearBtn = findViewById<ImageView>(R.id.clear_btn)
 
         val searchIcon = ContextCompat.getDrawable(this, R.drawable.search_mini_img)
         val clearIcon = ContextCompat.getDrawable(this, R.drawable.clear_search)
@@ -39,13 +44,15 @@ class SearchActivity : AppCompatActivity() {
             insets
         }
 
-        backBtn.setOnClickListener { finish() }
+        backBtn.setOnClickListener {
+            finish()
+        }
 
         val searchTextWatcher = object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val clear = if (s.isNullOrEmpty()) null else clearIcon
-                editText.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, clear, null)
                 currentSearchText = s?.toString() ?: ""
+                clearBtn.visibility = if (currentSearchText.isEmpty()) ImageView.GONE else ImageView.VISIBLE
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -54,32 +61,16 @@ class SearchActivity : AppCompatActivity() {
 
         editText.addTextChangedListener(searchTextWatcher)
 
-        editText.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                val drawableRight = 2
-                val clear = editText.compoundDrawables[drawableRight]
-                if (clear != null) {
-                    val iconWidth = clear.bounds.width()
-                    val clickAreaStart = editText.width - editText.paddingEnd - iconWidth
-                    if (event.x > clickAreaStart) {
-                        editText.text.clear()
-                        return@setOnTouchListener true
-                    }
-                }
-            }
-            false
+        clearBtn.setOnClickListener {
+            editText.text.clear()
         }
-
-        editText.setCompoundDrawablesWithIntrinsicBounds(searchIcon, null, null, null)
     }
 
-    // Сохраняем текст при повороте экрана
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString("SEARCH_TEXT", currentSearchText)
+        outState.putString(SEARCH_TEXT_KEY, currentSearchText)
     }
 
-    // Восстанавливаем текст после поворота
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         val restoredText = savedInstanceState.getString("SEARCH_TEXT", "")
