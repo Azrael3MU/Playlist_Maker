@@ -42,4 +42,8 @@
     <style name="SettingsForvardStyle">
         <item name="android:src">@drawable/arrow_forvard_dark</item>
     </style>
+    <style name="SearchHintStyle">
+        <item name="android:textColorHint">@color/black</item>
+        <item name="android:drawableStart">@drawable/search_mini_img</item>
+    </style>
 </resources>
