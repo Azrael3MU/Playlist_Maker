@@ -32,10 +32,12 @@ class TrackAdapter(private val tracks: List<Track>) :
         holder.artistName.text = track.artistName
         holder.trackTime.text = track.trackTime
 
+        val radiusInPx = holder.itemView.context.resources.getDimensionPixelSize(R.dimen.corner_radius)
+
         Glide.with(holder.itemView)
             .load(track.artworkUrl100)
             .placeholder(R.drawable.placeholder)
-            .transform(RoundedCorners(2))
+            .transform(RoundedCorners(radiusInPx))
             .centerCrop()
             .into(holder.artwork)
     }
