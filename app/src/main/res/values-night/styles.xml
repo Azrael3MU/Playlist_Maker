@@ -54,7 +54,7 @@
     </style>
     <style name="SearchBottomTextStyle">
         <item name="android:fontFamily">@font/yp_regular</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textFontWeight">400</item>
         <item name="android:textColor">@color/white</item>
     </style>

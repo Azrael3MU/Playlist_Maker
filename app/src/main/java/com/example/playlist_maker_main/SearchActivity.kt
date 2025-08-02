@@ -125,33 +125,3 @@ class SearchActivity : AppCompatActivity() {
     }
 
 }
-class TrackAdapter(private val tracks: List<Track>) :
-    RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
-
-    class TrackViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val artwork: ImageView = view.findViewById(R.id.artwork)
-        val trackName: TextView = view.findViewById(R.id.track_name)
-        val artistName: TextView = view.findViewById(R.id.artist_name)
-        val trackTime: TextView = view.findViewById(R.id.track_time)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_track, parent, false)
-        return TrackViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
-        val track = tracks[position]
-        holder.trackName.text = track.trackName
-        holder.artistName.text = track.artistName
-        holder.trackTime.text = track.trackTime
-
-        Glide.with(holder.itemView)
-            .load(track.artworkUrl100)
-            .centerCrop()
-            .into(holder.artwork)
-    }
-
-    override fun getItemCount(): Int = tracks.size
-}
