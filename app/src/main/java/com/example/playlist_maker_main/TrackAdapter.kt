@@ -8,10 +8,16 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 
-class TrackAdapter(private val tracks: List<Track>) :
+class TrackAdapter(private var tracks: List<Track>) :
     RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
+
+    fun submitList(newList: List<Track>) {
+        tracks = newList
+        notifyDataSetChanged()
+    }
 
     class TrackViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val artwork: ImageView = view.findViewById(R.id.artwork)
@@ -37,8 +43,7 @@ class TrackAdapter(private val tracks: List<Track>) :
         Glide.with(holder.itemView)
             .load(track.artworkUrl100)
             .placeholder(R.drawable.placeholder)
-            .transform(RoundedCorners(radiusInPx))
-            .centerCrop()
+            .transform(CenterCrop(), RoundedCorners(radiusInPx))
             .into(holder.artwork)
     }
 
