@@ -44,6 +44,8 @@
             android:paddingStart="12dp"
             android:paddingEnd="16dp"
             android:inputType="text"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
             android:hint="@string/search"
             android:textSize="16sp"
             android:fontFamily="@font/yp_regular"
@@ -67,5 +69,76 @@
         android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"/>
+
+    <!-- Ничего не найдено -->
+    <LinearLayout
+        android:id="@+id/empty_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/notfound" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/yp_medium"
+            android:text="Ничего не нашлось"
+            style="@style/SearchTextStyle"
+            android:textSize="19dp"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+
+    <!-- Ошибка -->
+    <LinearLayout
+        android:id="@+id/error_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:layout_marginBottom="80dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/enternet" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/yp_medium"
+            android:text="Проблемы со связью"
+            style="@style/SearchTextStyle"
+            android:textSize="19dp"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/yp_medium"
+            android:text="Загрузка не удалась. Проверьте подключение к интернету"
+            style="@style/SearchTextStyle"
+            android:textSize="19dp"
+            android:gravity="center"
+            android:layout_marginTop="24dp"/>
+
+        <Button
+            android:id="@+id/btn_retry"
+            style="@style/ErrorEnternetButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Обновить"
+            android:layout_marginTop="24dp"
+            />
+    </LinearLayout>
+
 
 </LinearLayout>

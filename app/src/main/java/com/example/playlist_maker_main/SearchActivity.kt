@@ -3,23 +3,21 @@ package com.example.playlist_maker_main
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class SearchActivity : AppCompatActivity() {
 
@@ -28,56 +26,139 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private lateinit var editText: EditText
+    private lateinit var clearBtn: ImageView
+    private lateinit var backBtn: ImageView
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: TrackAdapter
+
+    private lateinit var emptyContainer: View
+    private lateinit var errorContainer: View
+    private lateinit var retryBtn: View
+
     private var currentSearchText: String = ""
+    private var lastQuery: String = ""
+    private var searchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_search)
 
-        val searchRoot = findViewById<LinearLayout>(R.id.searchRoot)
-        val backBtn = findViewById<ImageView>(R.id.back_button)
-        editText = findViewById(R.id.edit_text_id)
-        val clearBtn = findViewById<ImageView>(R.id.clear_btn)
-        val recyclerView = findViewById<RecyclerView>(R.id.tracks_recycler_view)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        val trackList = getMockTracks()
-        recyclerView.adapter = TrackAdapter(trackList)
-
-
-        val searchIcon = ContextCompat.getDrawable(this, R.drawable.search_mini_img)
-        val clearIcon = ContextCompat.getDrawable(this, R.drawable.clear_search)
-
-        ViewCompat.setOnApplyWindowInsetsListener(searchRoot) { view, insets ->
+        // Insets для статус-бара
+        val root: View = findViewById(R.id.searchRoot)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            view.updatePadding(top = bars.top)
+            v.updatePadding(top = bars.top)
             insets
         }
 
-        backBtn.setOnClickListener {
-            finish()
+        // View binding
+        backBtn = findViewById(R.id.back_button)
+        editText = findViewById(R.id.edit_text_id)
+        clearBtn = findViewById(R.id.clear_btn)
+
+        recyclerView = findViewById(R.id.tracks_recycler_view)
+        emptyContainer = findViewById(R.id.empty_container)
+        errorContainer = findViewById(R.id.error_container)
+        retryBtn = findViewById(R.id.btn_retry)
+
+        // Recycler
+        adapter = TrackAdapter(emptyList())
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
+
+        // Навигация назад
+        backBtn.setOnClickListener { finish() }
+
+        // Очистка поля
+        clearBtn.setOnClickListener {
+            // отменим возможный активный поиск
+            searchJob?.cancel()
+
+            editText.text.clear()
+            editText.clearFocus()
+            hideKeyboard(editText)
+
+            // очистим экран
+            render()
+            lastQuery = ""
         }
 
-        val searchTextWatcher = object : TextWatcher {
+        // Показ/скрытие кнопки очистки
+        editText.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val clear = if (s.isNullOrEmpty()) null else clearIcon
-                currentSearchText = s?.toString() ?: ""
-                clearBtn.visibility = if (currentSearchText.isEmpty()) ImageView.GONE else ImageView.VISIBLE
+                currentSearchText = s?.toString().orEmpty()
+                clearBtn.visibility = if (currentSearchText.isEmpty()) View.GONE else View.VISIBLE
             }
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
+        })
+
+        // Клавиша Done запускает поиск
+        editText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                performSearch(editText.text.toString())
+                true
+            } else false
         }
 
-        editText.addTextChangedListener(searchTextWatcher)
-
-        clearBtn.setOnClickListener {
-            editText.text.clear()
+        // Retry на плейсхолде ошибки
+        retryBtn.setOnClickListener {
+            if (lastQuery.isNotBlank()) performSearch(lastQuery)
         }
     }
 
+    /** Единый рендер состояний экрана */
+    private fun render(
+        list: List<Track> = emptyList(),
+        showEmpty: Boolean = false,
+        showError: Boolean = false
+    ) {
+        adapter.submitList(list)
+
+        recyclerView.visibility = if (list.isNotEmpty()) View.VISIBLE else View.GONE
+        emptyContainer.visibility = if (showEmpty) View.VISIBLE else View.GONE
+        errorContainer.visibility = if (showError) View.VISIBLE else View.GONE
+    }
+
+    /** Поиск по iTunes API */
+    private fun performSearch(queryRaw: String) {
+        val query = queryRaw.trim()
+        lastQuery = query
+
+        if (query.isBlank()) {
+            render()
+            return
+        }
+
+        // перед новым запросом скрываем плейсхолды и отменяем старый
+        render()
+        searchJob?.cancel()
+
+        searchJob = lifecycleScope.launch {
+            try {
+                val response = Network.api.search(query)
+                val tracks = response.results.map { it.toDomain() }
+                if (tracks.isEmpty()) {
+                    render(showEmpty = true)
+                } else {
+                    render(list = tracks)
+                }
+            } catch (_: Exception) {
+                render(showError = true)
+            }
+        }
+    }
+
+    private fun hideKeyboard(view: View) {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    // Сохранение/восстановление текста поиска
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(SEARCH_TEXT_KEY, currentSearchText)
@@ -85,43 +166,9 @@ class SearchActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        val restoredText = savedInstanceState.getString("SEARCH_TEXT", "")
+        val restoredText = savedInstanceState.getString(SEARCH_TEXT_KEY, "")
         editText.setText(restoredText)
+        currentSearchText = restoredText
+        clearBtn.visibility = if (currentSearchText.isEmpty()) View.GONE else View.VISIBLE
     }
-
-    private fun getMockTracks(): List<Track> {
-        return listOf(
-            Track(
-                trackName = "Smells Like Teen Spirit",
-                artistName = "Nirvana",
-                trackTime = "5:01",
-                artworkUrl100 = "https://is5-ssl.mzstatic.com/image/thumb/Music115/v4/7b/58/c2/7b58c21a-2b51-2bb2-e59a-9bb9b96ad8c3/00602567924166.rgb.jpg/100x100bb.jpg"
-            ),
-            Track(
-                trackName = "Billie Jean",
-                artistName = "Michael Jackson",
-                trackTime = "4:35",
-                artworkUrl100 = "https://is5-ssl.mzstatic.com/image/thumb/Music125/v4/3d/9d/38/3d9d3811-71f0-3a0e-1ada-3004e56ff852/827969428726.jpg/100x100bb.jpg"
-            ),
-            Track(
-                trackName = "Stayin' Alive",
-                artistName = "Bee Gees",
-                trackTime = "4:10",
-                artworkUrl100 = "https://is4-ssl.mzstatic.com/image/thumb/Music115/v4/1f/80/1f/1f801fc1-8c0f-ea3e-d3e5-387c6619619e/16UMGIM86640.rgb.jpg/100x100bb.jpg"
-            ),
-            Track(
-                trackName = "Whole Lotta Love",
-                artistName = "Led Zeppelin",
-                trackTime = "5:33",
-                artworkUrl100 = "https://is2-ssl.mzstatic.com/image/thumb/Music62/v4/7e/17/e3/7e17e33f-2efa-2a36-e916-7f808576cf6b/mzm.fyigqcbs.jpg/100x100bb.jpg"
-            ),
-            Track(
-                trackName = "Sweet Child O'Mine",
-                artistName = "Guns N' Roses",
-                trackTime = "5:03",
-                artworkUrl100 = "https://is5-ssl.mzstatic.com/image/thumb/Music125/v4/a0/4d/c4/a04dc484-03cc-02aa-fa82-5334fcb4bc16/18UMGIM24878.rgb.jpg/100x100bb.jpg"
-            )
-        )
-    }
-
 }
