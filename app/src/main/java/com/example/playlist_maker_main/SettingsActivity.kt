@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +24,15 @@ class SettingsActivity : AppCompatActivity() {
         val supportBtn = findViewById<LinearLayout>(R.id.support_btn)
         val agreementBtn = findViewById<LinearLayout>(R.id.agreement)
         val settingsRoot = findViewById<LinearLayout>(R.id.settingsRoot)
+        val themeSwitcher = findViewById<SwitchMaterial>(R.id.themeSwithcer)
+
+        val app = applicationContext as App
+        themeSwitcher.isChecked = app.darkTheme
+
+        themeSwitcher.setOnCheckedChangeListener { switcher, checked ->
+            (applicationContext as App).switchTheme(checked)
+            recreate()
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(settingsRoot) { v, insets ->
             val bars = insets.getInsets(

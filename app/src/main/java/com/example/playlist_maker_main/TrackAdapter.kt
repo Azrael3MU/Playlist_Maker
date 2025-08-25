@@ -1,7 +1,6 @@
 package com.example.playlist_maker_main
 
 import android.view.LayoutInflater
-import android.view.RoundedCorner
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -11,41 +10,44 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 
-class TrackAdapter(private var tracks: List<Track>) :
-    RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
+class TrackAdapter(
+    private var tracks: List<Track>,
+    private val onClick: (Track) -> Unit
+) : RecyclerView.Adapter<TrackAdapter.TrackVH>() {
 
-    fun submitList(newList: List<Track>) {
-        tracks = newList
+    fun submitList(list: List<Track>) {
+        tracks = list
         notifyDataSetChanged()
     }
 
-    class TrackViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val artwork: ImageView = view.findViewById(R.id.artwork)
-        val trackName: TextView = view.findViewById(R.id.track_name)
-        val artistName: TextView = view.findViewById(R.id.artist_name)
-        val trackTime: TextView = view.findViewById(R.id.track_time)
+    class TrackVH(v: View) : RecyclerView.ViewHolder(v) {
+        val artwork: ImageView = v.findViewById(R.id.artwork)
+        val name: TextView = v.findViewById(R.id.track_name)
+        val artist: TextView = v.findViewById(R.id.artist_name)
+        val time: TextView = v.findViewById(R.id.track_time)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackVH {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_track, parent, false)
-        return TrackViewHolder(view)
+        return TrackVH(view)
     }
 
-    override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
-        val track = tracks[position]
-        holder.trackName.text = track.trackName
-        holder.artistName.text = track.artistName
-        holder.trackTime.text = track.trackTime
+    override fun onBindViewHolder(h: TrackVH, pos: Int) {
+        val t = tracks[pos]
+        h.name.text = t.trackName
+        h.artist.text = t.artistName
+        h.time.text = t.trackTime
 
-        val radiusInPx = holder.itemView.context.resources.getDimensionPixelSize(R.dimen.corner_radius)
-
-        Glide.with(holder.itemView)
-            .load(track.artworkUrl100)
+        val radius = h.itemView.context.resources.getDimensionPixelSize(R.dimen.corner_radius)
+        Glide.with(h.itemView)
+            .load(t.artworkUrl100)
             .placeholder(R.drawable.placeholder)
-            .transform(CenterCrop(), RoundedCorners(radiusInPx))
-            .into(holder.artwork)
+            .transform(CenterCrop(), RoundedCorners(radius))
+            .into(h.artwork)
+
+        h.itemView.setOnClickListener { onClick(t) }
     }
 
-    override fun getItemCount(): Int = tracks.size
+    override fun getItemCount() = tracks.size
 }
