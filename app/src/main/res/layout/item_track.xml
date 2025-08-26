@@ -37,14 +37,15 @@
             <TextView
                 android:id="@+id/artist_name"
                 style="@style/SearchBottomTextStyle"
-                android:layout_width="wrap_content"
+                android:layout_width="54dp"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_marginHorizontal="6dp"
                 android:src="@drawable/dot_separator"
                 android:contentDescription="@null" />
 
@@ -52,13 +53,15 @@
                 android:id="@+id/track_time"
                 style="@style/SearchBottomTextStyle"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:maxLines="1"/>
         </LinearLayout>
     </LinearLayout>
     <ImageView
         android:id="@+id/arrow_forward"
         style="@style/SettingsForvardStyle"
         android:layout_gravity="center_vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"/>
 </LinearLayout>
