@@ -80,11 +80,12 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun bind(t: Track) {
+        val radius = resources.getDimensionPixelSize(R.dimen.corner_8)
         Glide.with(this)
             .load(t.cover512())
             .placeholder(R.drawable.player_placeholder)
             .error(R.drawable.player_placeholder)
-            .transform(CenterCrop(), RoundedCorners(8))
+            .transform(CenterCrop(), RoundedCorners(radius))
             .into(ivCover)
 
         tvTitle.text = t.trackName

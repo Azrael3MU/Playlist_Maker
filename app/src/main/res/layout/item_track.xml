@@ -28,6 +28,7 @@
             android:ellipsize="end" />
 
         <LinearLayout
+            android:id="@+id/meta_row"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -39,12 +40,12 @@
                 style="@style/SearchBottomTextStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:maxLines="1"
                 android:ellipsize="end"
                 />
 
             <ImageView
+                android:id="@+id/dot_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -56,6 +57,7 @@
                 style="@style/SearchBottomTextStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:maxLines="1"/>
         </LinearLayout>
     </LinearLayout>
