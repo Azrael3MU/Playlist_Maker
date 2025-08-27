@@ -18,13 +18,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginLeft="20dp"/>
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="20dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/search"
-            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
             android:layout_marginBottom="16dp"
             style="@style/SettingsTitleTextStyle"
             android:fontFamily="@font/yp_medium"
@@ -62,13 +62,50 @@
             android:src="@drawable/clear_search"
             android:visibility="gone"/>
     </FrameLayout>
+    <LinearLayout
+        android:id="@+id/history_container"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/history_title"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:textSize="19sp"
+            android:layout_weight="500"
+            android:text="@string/you_search"
+            style="@style/SettingsTitleTextStyle"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/history_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/btn_clear_history"
+            style="@style/ErrorEnternetButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/clear_history"
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center_horizontal"/>
+    </LinearLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/tracks_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+        android:layout_marginEnd="16dp"
+        android:visibility="gone" />
 
     <!-- Ничего не найдено -->
     <LinearLayout
@@ -89,9 +126,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/yp_medium"
-            android:text="Ничего не нашлось"
+            android:text="@string/nothing_found"
             style="@style/SearchTextStyle"
-            android:textSize="19dp"
+            android:textSize="19sp"
             android:layout_marginTop="16dp"/>
     </LinearLayout>
 
@@ -115,18 +152,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/yp_medium"
-            android:text="Проблемы со связью"
+            android:text="@string/errors_connection"
             style="@style/SearchTextStyle"
-            android:textSize="19dp"
+            android:textSize="19sp"
             android:layout_marginTop="16dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/yp_medium"
-            android:text="Загрузка не удалась. Проверьте подключение к интернету"
+            android:text="@string/cheack_connection"
             style="@style/SearchTextStyle"
-            android:textSize="19dp"
+            android:textSize="19sp"
             android:gravity="center"
             android:layout_marginTop="24dp"/>
 
@@ -135,7 +172,7 @@
             style="@style/ErrorEnternetButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Обновить"
+            android:text="@string/update"
             android:layout_marginTop="24dp"
             />
     </LinearLayout>

@@ -12,4 +12,10 @@
     <string name="support_text">Спасибо разработчикам и разработчицам за крутое приложение!</string>
     <string name="support_adress">vadinload56@gmail.com</string>
     <string name="agreement_link">https://yandex.ru/legal/practicum_offer/</string>
+    <string name="you_search">Вы искали</string>
+    <string name="clear_history">Очистить историю</string>
+    <string name="nothing_found">Ничего не нашлось</string>
+    <string name="errors_connection">Проблемы со связью</string>
+    <string name="cheack_connection">Загрузка не удалась. Проверьте подключение к интернету</string>
+    <string name="update">Обновить</string>
 </resources>
