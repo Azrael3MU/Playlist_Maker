@@ -35,9 +35,11 @@ class TrackAdapter(
 
     override fun onBindViewHolder(h: TrackVH, pos: Int) {
         val t = tracks[pos]
+        h.artist.text = ""
         h.name.text = t.trackName
         h.artist.text = t.artistName
-        h.time.text = t.trackTime
+        h.artist.requestLayout()
+        h.time.text = t.durationStr()
 
         val radius = h.itemView.context.resources.getDimensionPixelSize(R.dimen.corner_radius)
         Glide.with(h.itemView)

@@ -41,11 +41,13 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                />
 
             <ImageView
-                android:layout_width="13dp"
-                android:layout_height="13dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:src="@drawable/dot_separator"
                 android:contentDescription="@null" />
 

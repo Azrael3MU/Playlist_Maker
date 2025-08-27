@@ -1,6 +1,7 @@
 package com.example.playlist_maker_main
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
@@ -87,15 +88,18 @@ class SearchActivity : AppCompatActivity() {
 
         adapter = TrackAdapter(emptyList()) { track ->
             pushToHistory(track)
+            openPlayer(track)
         }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
         historyAdapter = TrackAdapter(history) { track ->
             pushToHistory(track)
+            openPlayer(track)
         }
         historyRecycler.layoutManager = LinearLayoutManager(this)
         historyRecycler.adapter = historyAdapter
+
 
         backBtn.setOnClickListener { finish() }
 
@@ -139,6 +143,13 @@ class SearchActivity : AppCompatActivity() {
         historyAdapter.submitList(history.toList())
         showHistoryIfNeeded()
     }
+
+    private fun openPlayer(track: Track) {
+        val intent = Intent(this, PlayerActivity::class.java)
+        intent.putExtra("track", track) // Track должен быть Parcelable
+        startActivity(intent)
+    }
+
 
     private fun loadHistory(): MutableList<Track> {
         val json = prefs.getString(HISTORY_KEY, null) ?: return mutableListOf()
