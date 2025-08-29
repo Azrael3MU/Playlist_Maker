@@ -28,8 +28,6 @@ class TrackAdapter(
         val name: TextView = v.findViewById(R.id.track_name)
         val artist: TextView = v.findViewById(R.id.artist_name)
         val time: TextView = v.findViewById(R.id.track_time)
-        val dot: ImageView     = v.findViewById(R.id.dot_view)
-        val metaRow: View      = v.findViewById(R.id.meta_row)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackVH {
@@ -45,34 +43,6 @@ class TrackAdapter(
         h.artist.text = t.artistName
         h.time.text = t.durationStr()
 
-        h.metaRow.doOnLayout {
-            val rowW = h.metaRow.width - h.metaRow.paddingLeft - h.metaRow.paddingRight
-
-            val lpDot  = h.dot.layoutParams  as ViewGroup.MarginLayoutParams
-            val lpTime = h.time.layoutParams as ViewGroup.MarginLayoutParams
-
-            val timeText = h.time.text.toString()
-            val timeW = (h.time.paint.measureText(timeText) + 0.5f).toInt()
-
-            val dotW = (h.dot.drawable?.intrinsicWidth ?: dpToPx(h.itemView, 4))
-
-            val occupied = timeW + lpTime.leftMargin + lpTime.rightMargin +
-                    dotW   + lpDot.leftMargin  + lpDot.rightMargin
-
-            val avail = (rowW - occupied).coerceAtLeast(0)
-
-            val lpArtist = h.artist.layoutParams
-            if (lpArtist.width != avail) {
-                lpArtist.width = avail
-                h.artist.layoutParams = lpArtist
-            }
-            h.artist.text = TextUtils.ellipsize(
-                t.artistName,
-                h.artist.paint,
-                avail.toFloat(),
-                TextUtils.TruncateAt.END
-            )
-        }
 
         val radius = h.itemView.context.resources.getDimensionPixelSize(R.dimen.corner_radius)
         Glide.with(h.itemView)
