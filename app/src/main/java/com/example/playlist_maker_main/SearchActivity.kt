@@ -1,17 +1,17 @@
 package com.example.playlist_maker_main
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,10 +20,13 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 class SearchActivity : AppCompatActivity() {
 
@@ -32,11 +35,15 @@ class SearchActivity : AppCompatActivity() {
         private const val HISTORY_KEY = "search_history"
         private const val HISTORY_MAX = 10
         private const val SEARCH_TEXT_KEY = "SEARCH_TEXT"
+        private const val SEARCH_DEBOUNCE_MS = 2000L
+        private const val CLICK_DEBOUNCE_MS = 700L
     }
 
     private lateinit var editText: EditText
     private lateinit var clearBtn: ImageView
     private lateinit var backBtn: ImageView
+    private lateinit var progressContainer: View
+    private lateinit var progressBar: CircularProgressIndicator
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TrackAdapter
@@ -56,6 +63,9 @@ class SearchActivity : AppCompatActivity() {
     private var lastQuery = ""
     private var searchJob: Job? = null
 
+    private val clickGuard = AtomicBoolean(false)
+    private val handler = Handler(Looper.getMainLooper())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -73,6 +83,8 @@ class SearchActivity : AppCompatActivity() {
         backBtn = findViewById(R.id.back_button)
         editText = findViewById(R.id.edit_text_id)
         clearBtn = findViewById(R.id.clear_btn)
+        progressContainer = findViewById(R.id.progress_container)
+        progressBar = findViewById(R.id.search_progress)
 
         recyclerView = findViewById(R.id.tracks_recycler_view)
         emptyContainer = findViewById(R.id.empty_container)
@@ -86,20 +98,13 @@ class SearchActivity : AppCompatActivity() {
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         history = loadHistory()
 
-        adapter = TrackAdapter(emptyList()) { track ->
-            pushToHistory(track)
-            openPlayer(track)
-        }
+        adapter = TrackAdapter(emptyList()) { track -> onTrackClicked(track) }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
-        historyAdapter = TrackAdapter(history) { track ->
-            pushToHistory(track)
-            openPlayer(track)
-        }
+        historyAdapter = TrackAdapter(history) { track -> onTrackClicked(track) }
         historyRecycler.layoutManager = LinearLayoutManager(this)
         historyRecycler.adapter = historyAdapter
-
 
         backBtn.setOnClickListener { finish() }
 
@@ -108,48 +113,56 @@ class SearchActivity : AppCompatActivity() {
             editText.text.clear()
             editText.clearFocus()
             hideKeyboard(editText)
-
             render()
             lastQuery = ""
             showHistoryIfNeeded()
         }
 
-        historyClearBtn.setOnClickListener {
-            clearHistory()
-        }
+        historyClearBtn.setOnClickListener { clearHistory() }
 
-        editText.addTextChangedListener(object : TextWatcher {
+        editText.addTextChangedListener(object : SimpleTextWatcher() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 currentSearchText = s?.toString().orEmpty()
                 clearBtn.visibility = if (currentSearchText.isEmpty()) View.GONE else View.VISIBLE
+                scheduleDebouncedSearch(currentSearchText)
                 showHistoryIfNeeded()
             }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun afterTextChanged(s: Editable?) {}
         })
-        editText.setOnFocusChangeListener { _, _ -> showHistoryIfNeeded() }
 
         editText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
+                searchJob?.cancel()
                 performSearch(editText.text.toString())
                 true
             } else false
         }
 
-        retryBtn.setOnClickListener {
-            if (lastQuery.isNotBlank()) performSearch(lastQuery)
-        }
+        retryBtn.setOnClickListener { if (lastQuery.isNotBlank()) performSearch(lastQuery) }
 
         historyAdapter.submitList(history.toList())
         showHistoryIfNeeded()
     }
 
-    private fun openPlayer(track: Track) {
-        val intent = Intent(this, PlayerActivity::class.java)
-        intent.putExtra("track", track) // Track должен быть Parcelable
-        startActivity(intent)
+    private fun scheduleDebouncedSearch(query: String) {
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            render()
+            showHistoryIfNeeded()
+            return
+        }
+        searchJob = lifecycleScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            performSearch(query)
+        }
     }
 
+    private fun onTrackClicked(track: Track) {
+        if (clickGuard.getAndSet(true)) return
+        handler.postDelayed({ clickGuard.set(false) }, CLICK_DEBOUNCE_MS)
+
+        pushToHistory(track)
+        startActivity(PlayerActivity.newIntent(this, track))
+    }
 
     private fun loadHistory(): MutableList<Track> {
         val json = prefs.getString(HISTORY_KEY, null) ?: return mutableListOf()
@@ -186,9 +199,7 @@ class SearchActivity : AppCompatActivity() {
         recyclerView.visibility = if (list.isNotEmpty()) View.VISIBLE else View.GONE
         emptyContainer.visibility = if (showEmpty) View.VISIBLE else View.GONE
         errorContainer.visibility = if (showError) View.VISIBLE else View.GONE
-        if (list.isNotEmpty() || showEmpty || showError) {
-            historyContainer.visibility = View.GONE
-        }
+        if (list.isNotEmpty() || showEmpty || showError) historyContainer.visibility = View.GONE
     }
 
     private fun showHistoryIfNeeded() {
@@ -197,9 +208,7 @@ class SearchActivity : AppCompatActivity() {
                 errorContainer.visibility != View.VISIBLE
 
         val shouldShow = currentSearchText.isEmpty() && history.isNotEmpty() && nothingShown
-
         historyContainer.visibility = if (shouldShow) View.VISIBLE else View.GONE
-
         if (shouldShow) {
             recyclerView.visibility = View.GONE
             emptyContainer.visibility = View.GONE
@@ -208,20 +217,33 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
+    private fun showLoading() {
+        progressContainer.visibility = View.VISIBLE
+        progressBar.show()
+        recyclerView.visibility = View.GONE
+        emptyContainer.visibility = View.GONE
+        errorContainer.visibility = View.GONE
+        historyContainer.visibility = View.GONE
+    }
+
+    private fun hideLoading() {
+        progressBar.hide()
+        progressContainer.visibility = View.GONE
+    }
+
 
     private fun performSearch(queryRaw: String) {
         val query = queryRaw.trim()
         lastQuery = query
         if (query.isBlank()) {
+            hideLoading()
             render()
             showHistoryIfNeeded()
             return
         }
 
-        historyContainer.visibility = View.GONE
-        render()
+        showLoading()
         searchJob?.cancel()
-
         searchJob = lifecycleScope.launch {
             try {
                 val response = Network.api.search(query)
@@ -229,9 +251,13 @@ class SearchActivity : AppCompatActivity() {
                 if (tracks.isEmpty()) render(showEmpty = true) else render(list = tracks)
             } catch (_: Exception) {
                 render(showError = true)
+            } finally {
+                hideLoading()
             }
         }
     }
+
+
 
     private fun hideKeyboard(v: View) {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager

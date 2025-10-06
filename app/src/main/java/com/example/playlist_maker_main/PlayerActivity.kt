@@ -1,5 +1,7 @@
 package com.example.playlist_maker_main
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -14,6 +16,13 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 
 class PlayerActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_TRACK = "extra_track"
+
+        fun newIntent(ctx: Context, track: Track): Intent =
+            Intent(ctx, PlayerActivity::class.java).putExtra(EXTRA_TRACK, track)
+    }
 
     private lateinit var ivBack: ImageView
     private lateinit var ivCover: ImageView
@@ -71,7 +80,7 @@ class PlayerActivity : AppCompatActivity() {
             insets
         }
 
-        val track = intent.getParcelableExtra<Track>("track") ?: run {
+        val track = intent.getParcelableExtra<Track>(EXTRA_TRACK) ?: run {
             finish()
             return
         }
