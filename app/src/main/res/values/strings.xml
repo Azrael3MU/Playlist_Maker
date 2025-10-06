@@ -18,4 +18,9 @@
     <string name="errors_connection">Проблемы со связью</string>
     <string name="cheack_connection">Загрузка не удалась. Проверьте подключение к интернету</string>
     <string name="update">Обновить</string>
+    <string name="duration">Длительность</string>
+    <string name="album">Альбом</string>
+    <string name="year">Год</string>
+    <string name="genre">Жанр</string>
+    <string name="country">Страна</string>
 </resources>

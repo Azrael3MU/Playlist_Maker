@@ -1,14 +1,23 @@
 package com.example.playlist_maker_main
 
-import java.text.SimpleDateFormat
 import java.util.Locale
+import java.text.SimpleDateFormat
 
-private val timeFmt = SimpleDateFormat("mm:ss", Locale.getDefault())
+private val fmt = SimpleDateFormat("mm:ss", Locale.getDefault())
 
-fun TrackDto.toDomain(): Track = Track(
-    trackId = trackId ?: 0L,
-    trackName = trackName.orEmpty(),
-    artistName = artistName.orEmpty(),
-    trackTime = timeFmt.format((trackTimeMillis ?: 0L)),
-    artworkUrl100 = artworkUrl100.orEmpty()
-)
+fun TrackDto.toDomain(): Track {
+    val ms = trackTimeMillis ?: 0L
+    val mmss = fmt.format(ms)
+    return Track(
+        trackId = trackId ?: 0L,
+        trackName = trackName.orEmpty(),
+        artistName = artistName.orEmpty(),
+        trackTime = mmss,
+        trackTimeMillis = ms,
+        artworkUrl100 = artworkUrl100.orEmpty(),
+        collectionName = collectionName,
+        releaseDate = releaseDate,
+        primaryGenreName = primaryGenreName,
+        country = country
+    )
+}

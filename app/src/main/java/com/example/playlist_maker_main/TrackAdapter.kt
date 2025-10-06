@@ -1,10 +1,13 @@
 package com.example.playlist_maker_main
 
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.util.TypedValueCompat.dpToPx
+import androidx.core.view.doOnLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -35,9 +38,11 @@ class TrackAdapter(
 
     override fun onBindViewHolder(h: TrackVH, pos: Int) {
         val t = tracks[pos]
+        h.artist.text = ""
         h.name.text = t.trackName
         h.artist.text = t.artistName
-        h.time.text = t.trackTime
+        h.time.text = t.durationStr()
+
 
         val radius = h.itemView.context.resources.getDimensionPixelSize(R.dimen.corner_radius)
         Glide.with(h.itemView)
@@ -47,6 +52,10 @@ class TrackAdapter(
             .into(h.artwork)
 
         h.itemView.setOnClickListener { onClick(t) }
+    }
+    private fun dpToPx(view: View, dp: Int): Int {
+        val d = view.resources.displayMetrics.density
+        return (dp * d + 0.5f).toInt()
     }
 
     override fun getItemCount() = tracks.size
