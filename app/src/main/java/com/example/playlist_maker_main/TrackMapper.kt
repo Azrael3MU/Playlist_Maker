@@ -17,6 +17,7 @@ fun TrackDto.toDomain(): Track {
         collectionName = collectionName,
         releaseDate = releaseDate,
         primaryGenreName = primaryGenreName,
-        country = country
+        country = country,
+        previewUrl      = previewUrl
     )
 }

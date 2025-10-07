@@ -98,6 +98,12 @@ class SearchActivity : AppCompatActivity() {
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         history = loadHistory()
 
+        val filtered = history.filter { !it.previewUrl.isNullOrBlank() }.toMutableList()
+        if (filtered.size != history.size) {
+            history = filtered
+            saveHistory()
+        }
+
         adapter = TrackAdapter(emptyList()) { track -> onTrackClicked(track) }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -159,10 +165,14 @@ class SearchActivity : AppCompatActivity() {
     private fun onTrackClicked(track: Track) {
         if (clickGuard.getAndSet(true)) return
         handler.postDelayed({ clickGuard.set(false) }, CLICK_DEBOUNCE_MS)
-
+        if (track.previewUrl.isNullOrBlank()) {
+            android.widget.Toast.makeText(this, "Нет превью для трека", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         pushToHistory(track)
         startActivity(PlayerActivity.newIntent(this, track))
     }
+
 
     private fun loadHistory(): MutableList<Track> {
         val json = prefs.getString(HISTORY_KEY, null) ?: return mutableListOf()
