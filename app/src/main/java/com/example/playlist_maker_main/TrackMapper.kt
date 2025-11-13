@@ -12,12 +12,12 @@ fun TrackDto.toDomain(): Track {
         trackId = trackId ?: 0L,
         trackName = trackName.orEmpty(),
         artistName = artistName.orEmpty(),
-        trackTime = mmss,
-        trackTimeMillis = ms,
+        trackTimeMillis   = trackTimeMillis ?: 0L,
         artworkUrl100 = artworkUrl100.orEmpty(),
         collectionName = collectionName,
         releaseDate = releaseDate,
         primaryGenreName = primaryGenreName,
-        country = country
+        country = country,
+        previewUrl      = previewUrl
     )
 }
