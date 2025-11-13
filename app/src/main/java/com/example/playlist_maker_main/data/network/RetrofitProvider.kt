@@ -1,11 +1,11 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.data.network
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object Network {
+object RetrofitProvider {
     private val client by lazy {
         OkHttpClient.Builder()
             .addInterceptor(HttpLoggingInterceptor().apply {

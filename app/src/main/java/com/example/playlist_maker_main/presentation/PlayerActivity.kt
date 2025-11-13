@@ -1,4 +1,4 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.presentation
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
@@ -18,6 +18,8 @@ import androidx.core.view.updatePadding
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.example.playlist_maker_main.R
+import com.example.playlist_maker_main.domain.model.Track
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -48,7 +50,6 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var labelCountry: TextView
     private lateinit var valueCountry: TextView
 
-    // ---- player ----
     private var mediaPlayer: MediaPlayer? = null
     private var prepared = false
     private var playing = false
@@ -59,10 +60,11 @@ class PlayerActivity : AppCompatActivity() {
     private val timeFmt = SimpleDateFormat("mm:ss", Locale.getDefault())
     private val updateTask = object : Runnable {
         override fun run() {
-            val mp = mediaPlayer ?: return
-            if (playing) {
-                tvProgress.text = timeFmt.format(mp.currentPosition)
-                uiHandler.postDelayed(this, 300L)
+            mediaPlayer?.let { mp ->
+                if (playing) {
+                    tvProgress.text = timeFmt.format(mp.currentPosition)
+                    uiHandler.postDelayed(this, 300L)
+                }
             }
         }
     }
@@ -106,22 +108,11 @@ class PlayerActivity : AppCompatActivity() {
         }
         bind(track)
 
-        // важное: делаем кнопку явно кликабельной
-        ivPlay.isClickable = true
-        ivPlay.isFocusable = true
-
         ivPlay.setOnClickListener {
-            Log.d(TAG, "Play clicked. prepared=$prepared playing=$playing url=$previewUrl")
             if (previewUrl.isNullOrBlank()) {
-                Toast.makeText(this, "Нет превью для трека", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+                Toast.makeText(this, "Нет превью для трека", Toast.LENGTH_SHORT).show(); return@setOnClickListener
             }
-            if (!prepared) {
-                // Подготовка ещё идёт — запомним намерение
-                wantToPlay = true
-                Toast.makeText(this, "Готовим плеер…", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+            if (!prepared) { wantToPlay = true; Toast.makeText(this, "Готовим плеер…", Toast.LENGTH_SHORT).show(); return@setOnClickListener }
             if (!playing) startPlayback() else pausePlayback()
         }
     }
@@ -137,7 +128,6 @@ class PlayerActivity : AppCompatActivity() {
 
         tvTitle.text = t.trackName
         tvArtist.text = t.artistName
-
         valueDuration.text = t.durationStr()
         tvProgress.text = "00:00"
 
@@ -147,14 +137,11 @@ class PlayerActivity : AppCompatActivity() {
         setFieldOrHide(labelCountry, valueCountry, t.country)
 
         previewUrl = t.previewUrl
-        Log.d(TAG, "bind previewUrl=$previewUrl")
-
         if (!previewUrl.isNullOrBlank()) {
             preparePlayer(previewUrl!!)
             ivPlay.isEnabled = true
-        } else {
-            ivPlay.isEnabled = false
-        }
+        } else ivPlay.isEnabled = false
+
         setPlayIcon(false)
     }
 
@@ -167,56 +154,25 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun preparePlayer(url: String) {
         releasePlayer()
-        prepared = false
-        playing = false
-        wantToPlay = false
-        tvProgress.text = "00:00"
-        setPlayIcon(false)
+        prepared = false; playing = false; wantToPlay = false
+        tvProgress.text = "00:00"; setPlayIcon(false)
 
         val mp = MediaPlayer().also { mediaPlayer = it }
-
         mp.setAudioAttributes(
             AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build()
         )
-
-        mp.setOnPreparedListener {
-            prepared = true
-            Log.d(TAG, "onPrepared()")
-            if (wantToPlay) {
-                wantToPlay = false
-                startPlayback()
-            }
-        }
-
+        mp.setOnPreparedListener { prepared = true; if (wantToPlay) { wantToPlay = false; startPlayback() } }
         mp.setOnCompletionListener {
-            Log.d(TAG, "onCompletion()")
-            playing = false
-            setPlayIcon(false)
-            tvProgress.text = "00:00"
-            uiHandler.removeCallbacks(updateTask)
-            mp.seekTo(0)
+            playing = false; setPlayIcon(false); tvProgress.text = "00:00"; uiHandler.removeCallbacks(updateTask); mp.seekTo(0)
         }
-
-        mp.setOnErrorListener { _, what, extra ->
-            Log.e(TAG, "onError what=$what extra=$extra")
-            Toast.makeText(this, "Ошибка плеера ($what/$extra)", Toast.LENGTH_SHORT).show()
-            playing = false
-            prepared = false
-            wantToPlay = false
-            setPlayIcon(false)
-            uiHandler.removeCallbacks(updateTask)
-            true
-        }
-
         try {
-            Log.d(TAG, "setDataSource($url)")
             mp.setDataSource(url)
             mp.prepareAsync()
         } catch (e: Exception) {
-            Log.e(TAG, "prepareAsync failed: ${e.message}", e)
+            Log.e("PlayerActivity", "prepareAsync failed: ${e.message}", e)
             Toast.makeText(this, "Не удалось подготовить плеер", Toast.LENGTH_SHORT).show()
             ivPlay.isEnabled = false
         }
@@ -230,26 +186,17 @@ class PlayerActivity : AppCompatActivity() {
             playing = true
             setPlayIcon(true)
             uiHandler.post(updateTask)
-            Log.d(TAG, "Playback started")
-        } catch (e: Exception) {
-            Log.e(TAG, "start failed: ${e.message}", e)
-        }
+        } catch (_: Exception) { }
     }
 
     private fun pausePlayback() {
-        mediaPlayer?.let {
-            try { it.pause() } catch (_: Exception) {}
-        }
+        mediaPlayer?.runCatching { pause() }
         playing = false
         setPlayIcon(false)
         uiHandler.removeCallbacks(updateTask)
-        Log.d(TAG, "Playback paused")
     }
 
-    private fun finishWithStop() {
-        pausePlayback()
-        finish()
-    }
+    private fun finishWithStop() { pausePlayback(); finish() }
 
     private fun releasePlayer() {
         uiHandler.removeCallbacks(updateTask)
@@ -263,13 +210,6 @@ class PlayerActivity : AppCompatActivity() {
         ivPlay.setImageResource(if (isPlaying) R.drawable.pause_btn else R.drawable.play_btn)
     }
 
-    override fun onStop() {
-        super.onStop()
-        if (playing) pausePlayback()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        releasePlayer()
-    }
+    override fun onStop() { super.onStop(); if (playing) pausePlayback() }
+    override fun onDestroy() { super.onDestroy(); releasePlayer() }
 }

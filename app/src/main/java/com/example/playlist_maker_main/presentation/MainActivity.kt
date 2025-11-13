@@ -1,20 +1,15 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.presentation
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import com.example.playlist_maker_main.LibraryActivity
 import com.example.playlist_maker_main.R
-import com.example.playlist_maker_main.SearchActivity
-import com.example.playlist_maker_main.SettingsActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
