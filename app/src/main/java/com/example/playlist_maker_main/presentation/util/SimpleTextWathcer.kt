@@ -1,4 +1,4 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.presentation.util
 
 import android.text.Editable
 import android.text.TextWatcher

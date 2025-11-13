@@ -1,17 +1,16 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.presentation.adapter
 
-import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.util.TypedValueCompat.dpToPx
-import androidx.core.view.doOnLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.example.playlist_maker_main.R
+import com.example.playlist_maker_main.domain.model.Track
 
 class TrackAdapter(
     private var tracks: List<Track>,

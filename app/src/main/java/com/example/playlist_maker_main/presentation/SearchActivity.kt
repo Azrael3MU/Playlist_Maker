@@ -1,7 +1,6 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.presentation
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -20,9 +19,11 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.progressindicator.CircularProgressIndicator
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.example.playlist_maker_main.R
+import com.example.playlist_maker_main.di.Creator
+import com.example.playlist_maker_main.domain.model.Track
+import com.example.playlist_maker_main.presentation.adapter.TrackAdapter
+import com.example.playlist_maker_main.presentation.util.SimpleTextWatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,19 +32,18 @@ import java.util.concurrent.atomic.AtomicBoolean
 class SearchActivity : AppCompatActivity() {
 
     companion object {
-        private const val PREFS_NAME = "playlist_maker_prefs"
-        private const val HISTORY_KEY = "search_history"
-        private const val HISTORY_MAX = 10
         private const val SEARCH_TEXT_KEY = "SEARCH_TEXT"
         private const val SEARCH_DEBOUNCE_MS = 2000L
         private const val CLICK_DEBOUNCE_MS = 700L
     }
 
+    private val searchInteractor by lazy { Creator.provideSearchInteractor() }
+    private val historyInteractor by lazy { Creator.provideHistoryInteractor(this) }
+
     private lateinit var editText: EditText
     private lateinit var clearBtn: ImageView
     private lateinit var backBtn: ImageView
-    private lateinit var progressContainer: View
-    private lateinit var progressBar: CircularProgressIndicator
+    private lateinit var progressBar: ProgressBar
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TrackAdapter
@@ -55,10 +55,8 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var historyContainer: View
     private lateinit var historyRecycler: RecyclerView
     private lateinit var historyAdapter: TrackAdapter
-    private lateinit var prefs: SharedPreferences
-    private val gson = Gson()
-    private var history: MutableList<Track> = mutableListOf()
 
+    private var history: MutableList<Track> = mutableListOf()
     private var currentSearchText = ""
     private var lastQuery = ""
     private var searchJob: Job? = null
@@ -83,7 +81,6 @@ class SearchActivity : AppCompatActivity() {
         backBtn = findViewById(R.id.back_button)
         editText = findViewById(R.id.edit_text_id)
         clearBtn = findViewById(R.id.clear_btn)
-        progressContainer = findViewById(R.id.progress_container)
         progressBar = findViewById(R.id.search_progress)
 
         recyclerView = findViewById(R.id.tracks_recycler_view)
@@ -95,24 +92,24 @@ class SearchActivity : AppCompatActivity() {
         historyRecycler = findViewById(R.id.history_recycler)
         val historyClearBtn = findViewById<Button>(R.id.btn_clear_history)
 
-        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        history = loadHistory()
+        history = historyInteractor.get().toMutableList()
 
-        val filtered = history.filter { !it.previewUrl.isNullOrBlank() }.toMutableList()
-        if (filtered.size != history.size) {
-            history = filtered
-            saveHistory()
-        }
-
-        adapter = TrackAdapter(emptyList()) { track -> onTrackClicked(track) }
+        adapter = TrackAdapter(emptyList()) { onTrackClicked(it) }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
-        historyAdapter = TrackAdapter(history) { track -> onTrackClicked(track) }
+        historyAdapter = TrackAdapter(history) { onTrackClicked(it) }
         historyRecycler.layoutManager = LinearLayoutManager(this)
         historyRecycler.adapter = historyAdapter
 
         backBtn.setOnClickListener { finish() }
+
+        historyClearBtn.setOnClickListener {
+            historyInteractor.clear()
+            history.clear()
+            historyAdapter.submitList(history.toList())
+            showHistoryIfNeeded()
+        }
 
         clearBtn.setOnClickListener {
             searchJob?.cancel()
@@ -123,8 +120,6 @@ class SearchActivity : AppCompatActivity() {
             lastQuery = ""
             showHistoryIfNeeded()
         }
-
-        historyClearBtn.setOnClickListener { clearHistory() }
 
         editText.addTextChangedListener(object : SimpleTextWatcher() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -151,11 +146,7 @@ class SearchActivity : AppCompatActivity() {
 
     private fun scheduleDebouncedSearch(query: String) {
         searchJob?.cancel()
-        if (query.isBlank()) {
-            render()
-            showHistoryIfNeeded()
-            return
-        }
+        if (query.isBlank()) { render(); showHistoryIfNeeded(); return }
         searchJob = lifecycleScope.launch {
             delay(SEARCH_DEBOUNCE_MS)
             performSearch(query)
@@ -165,39 +156,37 @@ class SearchActivity : AppCompatActivity() {
     private fun onTrackClicked(track: Track) {
         if (clickGuard.getAndSet(true)) return
         handler.postDelayed({ clickGuard.set(false) }, CLICK_DEBOUNCE_MS)
-        if (track.previewUrl.isNullOrBlank()) {
-            android.widget.Toast.makeText(this, "Нет превью для трека", android.widget.Toast.LENGTH_SHORT).show()
-            return
-        }
-        pushToHistory(track)
+
+        history = historyInteractor.push(history, track).toMutableList()
+        historyInteractor.save(history)
+        historyAdapter.submitList(history.toList())
+        showHistoryIfNeeded()
+
         startActivity(PlayerActivity.newIntent(this, track))
     }
 
+    private fun performSearch(queryRaw: String) {
+        val query = queryRaw.trim()
+        lastQuery = query
+        if (query.isBlank()) { render(); showHistoryIfNeeded(); return }
 
-    private fun loadHistory(): MutableList<Track> {
-        val json = prefs.getString(HISTORY_KEY, null) ?: return mutableListOf()
-        val type = object : TypeToken<MutableList<Track>>() {}.type
-        return gson.fromJson(json, type)
-    }
+        findViewById<View>(R.id.progress_container).visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
+        historyContainer.visibility = View.GONE
+        render()
 
-    private fun saveHistory() {
-        prefs.edit().putString(HISTORY_KEY, gson.toJson(history)).apply()
-    }
-
-    private fun pushToHistory(track: Track) {
-        history.removeAll { it.trackId == track.trackId }
-        history.add(0, track)
-        if (history.size > HISTORY_MAX) history = history.take(HISTORY_MAX).toMutableList()
-        saveHistory()
-        historyAdapter.submitList(history.toList())
-        showHistoryIfNeeded()
-    }
-
-    private fun clearHistory() {
-        history.clear()
-        saveHistory()
-        historyAdapter.submitList(history.toList())
-        showHistoryIfNeeded()
+        searchJob?.cancel()
+        searchJob = lifecycleScope.launch {
+            try {
+                val tracks = searchInteractor.search(query)
+                if (tracks.isEmpty()) render(showEmpty = true) else render(list = tracks)
+            } catch (_: Exception) {
+                render(showError = true)
+            } finally {
+                progressBar.visibility = View.GONE
+                findViewById<View>(R.id.progress_container).visibility = View.GONE
+            }
+        }
     }
 
     private fun render(
@@ -227,51 +216,9 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    private fun showLoading() {
-        progressContainer.visibility = View.VISIBLE
-        progressBar.show()
-        recyclerView.visibility = View.GONE
-        emptyContainer.visibility = View.GONE
-        errorContainer.visibility = View.GONE
-        historyContainer.visibility = View.GONE
-    }
-
-    private fun hideLoading() {
-        progressBar.hide()
-        progressContainer.visibility = View.GONE
-    }
-
-
-    private fun performSearch(queryRaw: String) {
-        val query = queryRaw.trim()
-        lastQuery = query
-        if (query.isBlank()) {
-            hideLoading()
-            render()
-            showHistoryIfNeeded()
-            return
-        }
-
-        showLoading()
-        searchJob?.cancel()
-        searchJob = lifecycleScope.launch {
-            try {
-                val response = Network.api.search(query)
-                val tracks = response.results.map { it.toDomain() }
-                if (tracks.isEmpty()) render(showEmpty = true) else render(list = tracks)
-            } catch (_: Exception) {
-                render(showError = true)
-            } finally {
-                hideLoading()
-            }
-        }
-    }
-
-
-
     private fun hideKeyboard(v: View) {
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(v.windowToken, 0)
+        (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+            .hideSoftInputFromWindow(v.windowToken, 0)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
