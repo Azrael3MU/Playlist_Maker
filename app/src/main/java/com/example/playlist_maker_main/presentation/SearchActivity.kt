@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.playlist_maker_main.R
 import com.example.playlist_maker_main.di.Creator
+import com.example.playlist_maker_main.domain.interactor.HistoryInteractor
 import com.example.playlist_maker_main.domain.model.Track
 import com.example.playlist_maker_main.presentation.adapter.TrackAdapter
 import com.example.playlist_maker_main.presentation.util.SimpleTextWatcher
@@ -37,13 +38,14 @@ class SearchActivity : AppCompatActivity() {
         private const val CLICK_DEBOUNCE_MS = 700L
     }
 
-    private val searchInteractor by lazy { Creator.provideSearchInteractor() }
-    private val historyInteractor by lazy { Creator.provideHistoryInteractor(this) }
+    private val searchInteractor by lazy { Creator.searchTracksInteractor }
+    private lateinit var historyInteractor: HistoryInteractor
 
     private lateinit var editText: EditText
     private lateinit var clearBtn: ImageView
     private lateinit var backBtn: ImageView
     private lateinit var progressBar: ProgressBar
+    private lateinit var progressContainer: View
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TrackAdapter
@@ -69,6 +71,11 @@ class SearchActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_search)
 
+        // DI
+        historyInteractor = Creator.provideHistoryInteractor(this)
+        history = historyInteractor.get().toMutableList()
+
+        // Insets
         val root: View = findViewById(R.id.searchRoot)
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val bars = insets.getInsets(
@@ -78,10 +85,12 @@ class SearchActivity : AppCompatActivity() {
             insets
         }
 
+        // Views
         backBtn = findViewById(R.id.back_button)
         editText = findViewById(R.id.edit_text_id)
         clearBtn = findViewById(R.id.clear_btn)
         progressBar = findViewById(R.id.search_progress)
+        progressContainer = findViewById(R.id.progress_container)
 
         recyclerView = findViewById(R.id.tracks_recycler_view)
         emptyContainer = findViewById(R.id.empty_container)
@@ -92,8 +101,7 @@ class SearchActivity : AppCompatActivity() {
         historyRecycler = findViewById(R.id.history_recycler)
         val historyClearBtn = findViewById<Button>(R.id.btn_clear_history)
 
-        history = historyInteractor.get().toMutableList()
-
+        // Lists
         adapter = TrackAdapter(emptyList()) { onTrackClicked(it) }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -102,6 +110,7 @@ class SearchActivity : AppCompatActivity() {
         historyRecycler.layoutManager = LinearLayoutManager(this)
         historyRecycler.adapter = historyAdapter
 
+        // Actions
         backBtn.setOnClickListener { finish() }
 
         historyClearBtn.setOnClickListener {
@@ -138,7 +147,9 @@ class SearchActivity : AppCompatActivity() {
             } else false
         }
 
-        retryBtn.setOnClickListener { if (lastQuery.isNotBlank()) performSearch(lastQuery) }
+        retryBtn.setOnClickListener {
+            if (lastQuery.isNotBlank()) performSearch(lastQuery)
+        }
 
         historyAdapter.submitList(history.toList())
         showHistoryIfNeeded()
@@ -146,7 +157,11 @@ class SearchActivity : AppCompatActivity() {
 
     private fun scheduleDebouncedSearch(query: String) {
         searchJob?.cancel()
-        if (query.isBlank()) { render(); showHistoryIfNeeded(); return }
+        if (query.isBlank()) {
+            render()
+            showHistoryIfNeeded()
+            return
+        }
         searchJob = lifecycleScope.launch {
             delay(SEARCH_DEBOUNCE_MS)
             performSearch(query)
@@ -157,6 +172,7 @@ class SearchActivity : AppCompatActivity() {
         if (clickGuard.getAndSet(true)) return
         handler.postDelayed({ clickGuard.set(false) }, CLICK_DEBOUNCE_MS)
 
+        // История через интерактор
         history = historyInteractor.push(history, track).toMutableList()
         historyInteractor.save(history)
         historyAdapter.submitList(history.toList())
@@ -168,9 +184,13 @@ class SearchActivity : AppCompatActivity() {
     private fun performSearch(queryRaw: String) {
         val query = queryRaw.trim()
         lastQuery = query
-        if (query.isBlank()) { render(); showHistoryIfNeeded(); return }
+        if (query.isBlank()) {
+            render()
+            showHistoryIfNeeded()
+            return
+        }
 
-        findViewById<View>(R.id.progress_container).visibility = View.VISIBLE
+        progressContainer.visibility = View.VISIBLE
         progressBar.visibility = View.VISIBLE
         historyContainer.visibility = View.GONE
         render()
@@ -184,7 +204,7 @@ class SearchActivity : AppCompatActivity() {
                 render(showError = true)
             } finally {
                 progressBar.visibility = View.GONE
-                findViewById<View>(R.id.progress_container).visibility = View.GONE
+                progressContainer.visibility = View.GONE
             }
         }
     }

@@ -8,17 +8,18 @@ import com.google.gson.reflect.TypeToken
 
 class HistoryRepositoryImpl(
     private val prefs: SharedPreferences,
-    private val gson: Gson = Gson(),
-    private val key: String = "search_history"
+    private val gson: Gson,
 ) : HistoryRepository {
 
+    private val KEY = "search_history"
+
     override fun load(): List<Track> {
-        val json = prefs.getString(key, null) ?: return emptyList()
+        val json = prefs.getString(KEY, null) ?: return emptyList()
         val type = object : TypeToken<List<Track>>() {}.type
-        return gson.fromJson(json, type) ?: emptyList()
+        return gson.fromJson(json, type)
     }
 
     override fun save(list: List<Track>) {
-        prefs.edit().putString(key, gson.toJson(list)).apply()
+        prefs.edit().putString(KEY, gson.toJson(list)).apply()
     }
 }
