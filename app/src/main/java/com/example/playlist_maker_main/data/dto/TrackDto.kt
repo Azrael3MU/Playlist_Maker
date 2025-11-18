@@ -1,4 +1,4 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.data.dto
 
 data class TrackDto(
     val trackId: Long?,

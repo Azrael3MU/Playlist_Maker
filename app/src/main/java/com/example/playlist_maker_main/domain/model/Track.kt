@@ -1,4 +1,4 @@
-package com.example.playlist_maker_main
+package com.example.playlist_maker_main.domain.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
@@ -26,5 +26,5 @@ data class Track(
     fun cover512(): String =
         artworkUrl100.replaceAfterLast('/', "512x512bb.jpg")
 
-fun year(): String? = releaseDate?.takeIf { it.length >= 4 }?.substring(0, 4)
+    fun year(): String? = releaseDate?.takeIf { it.length >= 4 }?.substring(0, 4)
 }
