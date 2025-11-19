@@ -14,17 +14,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.playlist_maker_main.R
-import com.example.playlist_maker_main.creator.Creator
 import com.example.playlist_maker_main.search.domain.model.Track
 import com.example.playlist_maker_main.player.ui.PlayerActivity
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class SearchActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: SearchViewModel
+    private val viewModel: SearchViewModel by viewModel()
 
     private lateinit var backBtn: ImageView
     private lateinit var editText: EditText
@@ -48,7 +48,6 @@ class SearchActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_search)
 
-        // Insets
         val root: View = findViewById(R.id.searchRoot)
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val bars = insets.getInsets(
@@ -57,13 +56,6 @@ class SearchActivity : AppCompatActivity() {
             v.updatePadding(top = bars.top, bottom = bars.bottom)
             insets
         }
-
-        // DI из Creator
-        val searchInteractor = Creator.searchTracksInteractor
-        val historyInteractor = Creator.provideHistoryInteractor(this)
-
-        val factory = SearchViewModelFactory(searchInteractor, historyInteractor)
-        viewModel = ViewModelProvider(this, factory)[SearchViewModel::class.java]
 
         initViews()
         initListeners()

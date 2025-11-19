@@ -10,15 +10,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
 import com.example.playlist_maker_main.App
 import com.example.playlist_maker_main.R
-import com.example.playlist_maker_main.creator.Creator
 import com.google.android.material.switchmaterial.SwitchMaterial
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: SettingsViewModel
+    private val viewModel: SettingsViewModel by viewModel()
 
     private lateinit var backBtn: ImageView
     private lateinit var share: LinearLayout
@@ -34,11 +34,6 @@ class SettingsActivity : AppCompatActivity() {
 
         initViews()
         initInsets()
-
-        val themeInteractor = Creator.provideThemeInteractor(this)
-        val factory = SettingsViewModelFactory(themeInteractor)
-        viewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
-
         initListeners()
         observeViewModel()
     }
