@@ -2,18 +2,15 @@ package com.example.playlist_maker_main
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate
+import com.example.playlist_maker_main.creator.Creator
+import com.example.playlist_maker_main.settings.domain.ThemeInteractor
 
 class App : Application() {
 
-    companion object {
-        private const val PREFS_NAME = "app_prefs"
-        private const val KEY_DARK_THEME = "dark_theme"
-    }
-
-    private lateinit var prefs: SharedPreferences
+    lateinit var themeInteractor: ThemeInteractor
+        private set
 
     var darkTheme: Boolean = false
         private set
@@ -21,13 +18,14 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        themeInteractor = Creator.provideThemeInteractor(this)
 
-        val saved = prefs.contains(KEY_DARK_THEME)
-        darkTheme = if (saved) {
-            prefs.getBoolean(KEY_DARK_THEME, false)
+        darkTheme = if (themeInteractor.isThemeSet()) {
+            themeInteractor.isDarkThemeEnabled()
         } else {
-            isSystemDark(this)
+            val systemDark = isSystemDark(this)
+            themeInteractor.setDarkThemeEnabled(systemDark)
+            systemDark
         }
 
         applyNightMode(darkTheme)
@@ -36,7 +34,6 @@ class App : Application() {
     fun switchTheme(enableDark: Boolean) {
         if (darkTheme == enableDark) return
         darkTheme = enableDark
-        prefs.edit().putBoolean(KEY_DARK_THEME, darkTheme).apply()
         applyNightMode(darkTheme)
     }
 
