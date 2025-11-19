@@ -4,13 +4,20 @@ import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate
-import com.example.playlist_maker_main.creator.Creator
+import com.example.playlist_maker_main.di.dataModule
+import com.example.playlist_maker_main.di.domainModule
+import com.example.playlist_maker_main.di.presentationModule
 import com.example.playlist_maker_main.settings.domain.ThemeInteractor
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.android.ext.android.inject
+import org.koin.core.context.startKoin
+import org.koin.core.component.KoinComponent
+import org.koin.core.logger.Level
 
-class App : Application() {
+class App : Application(), KoinComponent {
 
-    lateinit var themeInteractor: ThemeInteractor
-        private set
+    private val themeInteractor: ThemeInteractor by inject()
 
     var darkTheme: Boolean = false
         private set
@@ -18,7 +25,11 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        themeInteractor = Creator.provideThemeInteractor(this)
+        startKoin {
+            androidLogger(Level.NONE)
+            androidContext(this@App)
+            modules(listOf(dataModule, domainModule, presentationModule))
+        }
 
         darkTheme = if (themeInteractor.isThemeSet()) {
             themeInteractor.isDarkThemeEnabled()
