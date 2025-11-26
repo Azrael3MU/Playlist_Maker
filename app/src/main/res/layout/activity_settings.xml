@@ -47,10 +47,13 @@
                 android:text="@string/dark_theme"
                 android:paddingTop="21dp"
                 android:paddingBottom="21dp"/>
+
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/themeSwithcer"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                style="@style/SwitherColors"/>
+
         </LinearLayout>
         <LinearLayout
             android:id="@+id/share_app"

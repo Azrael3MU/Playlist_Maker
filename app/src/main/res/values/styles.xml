@@ -86,4 +86,8 @@
         <item name="android:fontFamily">@font/yp_medium</item>
     </style>
     <item name="mediaTabIndicatorColor" type="color">@color/black</item>
+    <style name="SwitherColors">
+        <item name="thumbTint">@color/YPTextGrey</item>
+        <item name="trackTint">@color/YPGrey</item>
+    </style>
 </resources>
