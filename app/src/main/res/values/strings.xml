@@ -26,4 +26,6 @@
     <string name="error_no_preview_url">Нет ссылки на превью трека</string>
     <string name="empty_tracks">Ваша медиатека пуста</string>
     <string name="empty_playlists">Вы не создали ни одного плейлиста</string>
+    <string name="favorites_tracks">Избранные треки</string>
+    <string name="playlists">Плейлисты</string>
 </resources>
