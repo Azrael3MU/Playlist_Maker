@@ -19,20 +19,12 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlist_maker_main.R
 import com.example.playlist_maker_main.search.domain.model.Track
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class PlayerActivity : AppCompatActivity() {
 
-    companion object {
-        private const val EXTRA_TRACK = "extra_track"
-
-        fun newIntent(context: Context, track: Track): Intent {
-            return Intent(context, PlayerActivity::class.java).apply {
-                putExtra(EXTRA_TRACK, track)
-            }
-        }
-    }
-
-    private lateinit var viewModel: PlayerViewModel
+    private val viewModel: PlayerViewModel by viewModel()
 
     private lateinit var ivBack: ImageView
     private lateinit var ivCover: ImageView
@@ -56,8 +48,6 @@ class PlayerActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_player)
 
-        viewModel = ViewModelProvider(this)[PlayerViewModel::class.java]
-
         initViews()
         initInsets()
         initObservers()
@@ -69,7 +59,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         bindTrackInfo(track)
-        viewModel.init(track.previewUrl)   // если поле называется иначе — поменяй
+        viewModel.init(track.previewUrl)
     }
 
     private fun initViews() {
@@ -95,7 +85,6 @@ class PlayerActivity : AppCompatActivity() {
         ivBack.setOnClickListener { finish() }
 
         ivPlay.setOnClickListener {
-            Log.d("PlayerActivity", "Play button clicked")
             viewModel.onPlayClicked()
         }
     }
@@ -141,7 +130,6 @@ class PlayerActivity : AppCompatActivity() {
         tvTitle.text = t.trackName
         tvArtist.text = t.artistName
         valueDuration.text = t.durationStr()
-        tvProgress.text = "00:00"
 
         setFieldOrHide(labelAlbum, valueAlbum, t.collectionName)
         setFieldOrHide(labelYear, valueYear, t.year())
@@ -166,4 +154,15 @@ class PlayerActivity : AppCompatActivity() {
         super.onStop()
         viewModel.onStopView()
     }
+
+    companion object {
+        private const val EXTRA_TRACK = "extra_track"
+
+        fun newIntent(context: Context, track: Track): Intent {
+            return Intent(context, PlayerActivity::class.java).apply {
+                putExtra(EXTRA_TRACK, track)
+            }
+        }
+    }
+
 }

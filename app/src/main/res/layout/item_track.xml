@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -27,39 +28,50 @@
             android:maxLines="1"
             android:ellipsize="end" />
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/meta_row"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginTop="4dp">
 
             <TextView
                 android:id="@+id/artist_name"
                 style="@style/SearchBottomTextStyle"
-                android:layout_width="45dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:ellipsize="end"
-                />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/dot_view"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
             <ImageView
                 android:id="@+id/dot_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
                 android:src="@drawable/dot_separator"
-                android:contentDescription="@null" />
+                android:contentDescription="@null"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                app:layout_constraintStart_toEndOf="@id/artist_name"
+                app:layout_constraintTop_toTopOf="@id/artist_name"
+                app:layout_constraintBottom_toBottomOf="@id/artist_name"
+                app:layout_constraintEnd_toStartOf="@id/track_time" />
 
             <TextView
                 android:id="@+id/track_time"
                 style="@style/SearchBottomTextStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:maxLines="1"/>
-        </LinearLayout>
+                android:maxLines="1"
+                app:layout_constraintTop_toTopOf="@id/artist_name"
+                app:layout_constraintBottom_toBottomOf="@id/artist_name"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
     </LinearLayout>
     <ImageView
         android:id="@+id/arrow_forward"
