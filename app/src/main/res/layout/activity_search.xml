@@ -52,6 +52,7 @@
             android:textColor="@color/black"
             android:textFontWeight="400"
             android:background="@drawable/search_eadittext"
+            android:textCursorDrawable="@color/YPBlue"
             android:drawablePadding="8dp"/>
         <ImageView
             android:id="@+id/clear_btn"

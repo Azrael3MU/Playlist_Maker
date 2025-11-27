@@ -10,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.example.playlist_maker_main.R
+import com.example.playlist_maker_main.media.ui.MediaActivity
 import com.example.playlist_maker_main.search.ui.SearchActivity
 import com.example.playlist_maker_main.settings.ui.SettingsActivity
 
@@ -35,7 +36,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(searchIntent)
         }
         library_btn.setOnClickListener {
-            val libraryIntent = Intent(this, LibraryActivity::class.java)
+            val libraryIntent = Intent(this, MediaActivity::class.java)
             startActivity(libraryIntent)
         }
         settings_btn.setOnClickListener{

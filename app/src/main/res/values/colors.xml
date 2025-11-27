@@ -3,7 +3,10 @@
     <color name="black">#1A1B22</color>
     <color name="white">#FFFFFFFF</color>
     <color name="YPBlue">#3772e7</color>
+    <color name="YPLightBlue">#9FBBF3</color>
     <color name="YPGrey">#E6E8EB</color>
     <color name="YPTextGrey">#AEAFB4</color>
     <color name="progressColor">#3772E7</color>
+    <color name="media_text_active">#1A1B22</color>
+    <color name="media_text_inactive">#1A1B22</color>
 </resources>
