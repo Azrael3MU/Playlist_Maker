@@ -2,5 +2,6 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.Playlist_Maker_main" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="background">@color/black</item>
+
     </style>
 </resources>

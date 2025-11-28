@@ -9,24 +9,20 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
+import androidx.core.os.bundleOf
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.playlist_maker_main.R
+import com.example.playlist_maker_main.player.ui.PlayerFragment
 import com.example.playlist_maker_main.search.domain.model.Track
-import com.example.playlist_maker_main.player.ui.PlayerActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-
-class SearchActivity : AppCompatActivity() {
+class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private val viewModel: SearchViewModel by viewModel()
 
-    private lateinit var backBtn: ImageView
     private lateinit var editText: EditText
     private lateinit var clearBtn: ImageView
     private lateinit var progressBar: ProgressBar
@@ -43,53 +39,39 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var adapter: TrackAdapter
     private lateinit var historyAdapter: TrackAdapter
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_search)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        val root: View = findViewById(R.id.searchRoot)
-        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(top = bars.top, bottom = bars.bottom)
-            insets
-        }
 
-        initViews()
+        initViews(view)
         initListeners()
         observeViewModel()
     }
 
-    private fun initViews() {
-        backBtn = findViewById(R.id.back_button)
-        editText = findViewById(R.id.edit_text_id)
-        clearBtn = findViewById(R.id.clear_btn)
-        progressBar = findViewById(R.id.search_progress)
-        progressContainer = findViewById(R.id.progress_container)
+    private fun initViews(view: View) {
+        editText = view.findViewById(R.id.edit_text_id)
+        clearBtn = view.findViewById(R.id.clear_btn)
+        progressBar = view.findViewById(R.id.search_progress)
+        progressContainer = view.findViewById(R.id.progress_container)
 
-        recyclerView = findViewById(R.id.tracks_recycler_view)
-        emptyContainer = findViewById(R.id.empty_container)
-        errorContainer = findViewById(R.id.error_container)
-        retryBtn = findViewById(R.id.btn_retry)
-
-        historyContainer = findViewById(R.id.history_container)
-        historyRecycler = findViewById(R.id.history_recycler)
-        historyClearBtn = findViewById(R.id.btn_clear_history)
+        recyclerView = view.findViewById(R.id.tracks_recycler_view)
+        emptyContainer = view.findViewById(R.id.empty_container)
+        errorContainer = view.findViewById(R.id.error_container)
+        historyContainer = view.findViewById(R.id.history_container)
+        retryBtn = view.findViewById(R.id.btn_retry)
+        historyClearBtn = view.findViewById(R.id.btn_clear_history)
 
         adapter = TrackAdapter(emptyList()) { track -> onTrackClicked(track) }
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
 
         historyAdapter = TrackAdapter(emptyList()) { track -> onTrackClicked(track) }
-        historyRecycler.layoutManager = LinearLayoutManager(this)
+        historyRecycler = view.findViewById(R.id.history_recycler)
+        historyRecycler.layoutManager = LinearLayoutManager(requireContext())
         historyRecycler.adapter = historyAdapter
     }
 
     private fun initListeners() {
-        backBtn.setOnClickListener { finish() }
-
         clearBtn.setOnClickListener {
             editText.setText("")
             hideKeyboard()
@@ -124,7 +106,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.state.observe(this) { state ->
+        viewModel.state.observe(viewLifecycleOwner) { state ->
             renderState(state)
         }
     }
@@ -194,11 +176,13 @@ class SearchActivity : AppCompatActivity() {
 
     private fun onTrackClicked(track: Track) {
         viewModel.onTrackClicked(track)
-        startActivity(PlayerActivity.newIntent(this, track))
+        val args = bundleOf(PlayerFragment.ARG_TRACK to track)
+        findNavController().navigate(R.id.action_searchFragment_to_playerFragment, args)
     }
 
     private fun hideKeyboard() {
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(editText.windowToken, 0)
     }
 }

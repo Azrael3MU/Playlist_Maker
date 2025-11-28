@@ -7,34 +7,25 @@
     style="@style/AllBackground"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".media.ui.MediaActivity">
+    tools:context=".media.ui.MediaFragment">
 
-    <ImageView
-        android:id="@+id/btnBack"
-        style="@style/SettingsBackStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout
+        android:id="@+id/mediaRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/media"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="16dp"
+            style="@style/SettingsTitleTextStyle"
+            android:fontFamily="@font/yp_medium"
+            android:textSize="22sp"
+            android:textFontWeight="500"/>
 
-    <TextView
-        android:id="@+id/tvTitleMedia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/media"
-        app:layout_constraintTop_toTopOf="@id/btnBack"
-        app:layout_constraintBottom_toBottomOf="@id/btnBack"
-        app:layout_constraintStart_toEndOf="@id/btnBack"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        android:layout_marginStart="10dp"
-        style="@style/SettingsTitleTextStyle"
-        android:fontFamily="@font/yp_medium"
-        android:textSize="22sp"
-        android:textFontWeight="500"/>
+    </LinearLayout>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayoutMedia"
@@ -46,7 +37,7 @@
         app:tabIndicatorColor="@color/mediaTabIndicatorColor"
         app:tabTextColor="@color/media_text_inactive"
         app:tabSelectedTextAppearance="@color/media_text_active"
-        app:layout_constraintTop_toBottomOf="@id/btnBack"
+        app:layout_constraintTop_toBottomOf="@id/mediaRoot"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>

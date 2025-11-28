@@ -3,64 +3,40 @@ package com.example.playlist_maker_main.settings.ui
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.ImageView
+import android.view.View
 import android.widget.LinearLayout
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
+import androidx.fragment.app.Fragment
 import com.example.playlist_maker_main.App
 import com.example.playlist_maker_main.R
 import com.google.android.material.switchmaterial.SwitchMaterial
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-
-class SettingsActivity : AppCompatActivity() {
+class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private val viewModel: SettingsViewModel by viewModel()
 
-    private lateinit var backBtn: ImageView
     private lateinit var share: LinearLayout
     private lateinit var supportBtn: LinearLayout
     private lateinit var agreementBtn: LinearLayout
     private lateinit var settingsRoot: LinearLayout
     private lateinit var themeSwitcher: SwitchMaterial
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_settings)
-
-        initViews()
-        initInsets()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initViews(view)
         initListeners()
         observeViewModel()
     }
 
-    private fun initViews() {
-        backBtn = findViewById(R.id.back_button)
-        share = findViewById(R.id.share_app)
-        supportBtn = findViewById(R.id.support_btn)
-        agreementBtn = findViewById(R.id.agreement)
-        settingsRoot = findViewById(R.id.settingsRoot)
-        themeSwitcher = findViewById(R.id.themeSwithcer)
-    }
-
-    private fun initInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(settingsRoot) { v, insets ->
-            val systemBars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-                        or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(top = systemBars.top, bottom = systemBars.bottom)
-            insets
-        }
+    private fun initViews(view: View) {
+        share = view.findViewById(R.id.share_app)
+        supportBtn = view.findViewById(R.id.support_btn)
+        agreementBtn = view.findViewById(R.id.agreement)
+        settingsRoot = view.findViewById(R.id.settingsRoot)
+        themeSwitcher = view.findViewById(R.id.themeSwithcer)
     }
 
     private fun initListeners() {
-        backBtn.setOnClickListener { finish() }
-
         share.setOnClickListener {
             val shareMessage = getString(R.string.share_link)
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -94,13 +70,13 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.state.observe(this) { state ->
+        viewModel.state.observe(viewLifecycleOwner) { state ->
             render(state)
         }
     }
 
     private fun render(state: SettingsScreenState) {
-        val app = applicationContext as App
+        val app = requireContext().applicationContext as App
 
         if (themeSwitcher.isChecked != state.isDarkThemeOn) {
             themeSwitcher.isChecked = state.isDarkThemeOn

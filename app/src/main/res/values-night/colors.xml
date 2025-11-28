@@ -2,4 +2,5 @@
 <resources>
     <color name="media_text_active">#FFFFFFFF</color>
     <color name="media_text_inactive">#FFFFFFFF</color>
+    <color name="bottom_text_inactive">#FFFFFFFF</color>
 </resources>

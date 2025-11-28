@@ -1,19 +1,11 @@
 package com.example.playlist_maker_main.player.ui
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -21,12 +13,14 @@ import com.example.playlist_maker_main.R
 import com.example.playlist_maker_main.search.domain.model.Track
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
+class PlayerFragment : Fragment(R.layout.fragment_player) {
 
-class PlayerActivity : AppCompatActivity() {
+    companion object {
+        const val ARG_TRACK = "track"
+    }
 
     private val viewModel: PlayerViewModel by viewModel()
 
-    private lateinit var ivBack: ImageView
     private lateinit var ivCover: ImageView
     private lateinit var tvTitle: TextView
     private lateinit var tvArtist: TextView
@@ -34,74 +28,56 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var tvProgress: TextView
 
     private lateinit var valueDuration: TextView
-    private lateinit var labelAlbum: TextView
+    private lateinit var labelAlbum: View
     private lateinit var valueAlbum: TextView
-    private lateinit var labelYear: TextView
+    private lateinit var labelYear: View
     private lateinit var valueYear: TextView
-    private lateinit var labelGenre: TextView
+    private lateinit var labelGenre: View
     private lateinit var valueGenre: TextView
-    private lateinit var labelCountry: TextView
+    private lateinit var labelCountry: View
     private lateinit var valueCountry: TextView
+
+    private lateinit var track: Track
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_player)
+        track = requireArguments().getParcelable(ARG_TRACK)!!
+    }
 
-        initViews()
-        initInsets()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initViews(view)
         initObservers()
-
-        val track = intent.getParcelableExtra<Track>(EXTRA_TRACK)
-        if (track == null) {
-            finish()
-            return
-        }
 
         bindTrackInfo(track)
         viewModel.init(track.previewUrl)
     }
 
-    private fun initViews() {
-        val root: View = findViewById(R.id.player_root)
+    private fun initViews(view: View) {
+        // Никакого ivBack здесь нет
+        ivCover = view.findViewById(R.id.artwork)
+        tvTitle = view.findViewById(R.id.track_name)
+        tvArtist = view.findViewById(R.id.artist_name)
+        ivPlay = view.findViewById(R.id.play_btn)
+        tvProgress = view.findViewById(R.id.track_time)
 
-        ivBack = findViewById(R.id.arrow_back)
-        ivCover = findViewById(R.id.artwork)
-        tvTitle = findViewById(R.id.track_name)
-        tvArtist = findViewById(R.id.artist_name)
-        ivPlay = findViewById(R.id.play_btn)
-        tvProgress = findViewById(R.id.track_time)
-
-        valueDuration = findViewById(R.id.value_duration)
-        labelAlbum = findViewById(R.id.label_album)
-        valueAlbum = findViewById(R.id.value_album)
-        labelYear = findViewById(R.id.label_year)
-        valueYear = findViewById(R.id.value_year)
-        labelGenre = findViewById(R.id.label_genre)
-        valueGenre = findViewById(R.id.value_genre)
-        labelCountry = findViewById(R.id.label_country)
-        valueCountry = findViewById(R.id.value_country)
-
-        ivBack.setOnClickListener { finish() }
+        valueDuration = view.findViewById(R.id.value_duration)
+        labelAlbum = view.findViewById(R.id.label_album)
+        valueAlbum = view.findViewById(R.id.value_album)
+        labelYear = view.findViewById(R.id.label_year)
+        valueYear = view.findViewById(R.id.value_year)
+        labelGenre = view.findViewById(R.id.label_genre)
+        valueGenre = view.findViewById(R.id.value_genre)
+        labelCountry = view.findViewById(R.id.label_country)
+        valueCountry = view.findViewById(R.id.value_country)
 
         ivPlay.setOnClickListener {
             viewModel.onPlayClicked()
         }
     }
 
-    private fun initInsets() {
-        val root: View = findViewById(R.id.player_root)
-        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(top = bars.top, bottom = bars.bottom)
-            insets
-        }
-    }
-
     private fun initObservers() {
-        viewModel.state.observe(this) { state ->
+        viewModel.state.observe(viewLifecycleOwner) { state ->
             render(state)
         }
     }
@@ -112,7 +88,7 @@ class PlayerActivity : AppCompatActivity() {
         tvProgress.text = state.currentPositionText
 
         if (!state.errorMessage.isNullOrBlank()) {
-            Toast.makeText(this, state.errorMessage, Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.onErrorShown()
         }
     }
@@ -154,15 +130,4 @@ class PlayerActivity : AppCompatActivity() {
         super.onStop()
         viewModel.onStopView()
     }
-
-    companion object {
-        private const val EXTRA_TRACK = "extra_track"
-
-        fun newIntent(context: Context, track: Track): Intent {
-            return Intent(context, PlayerActivity::class.java).apply {
-                putExtra(EXTRA_TRACK, track)
-            }
-        }
-    }
-
 }

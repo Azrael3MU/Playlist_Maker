@@ -90,4 +90,19 @@
         <item name="thumbTint">@color/YPTextGrey</item>
         <item name="trackTint">@color/YPGrey</item>
     </style>
+    <style name="BottomNavMenuTextInactive" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="fontFamily">@font/yp_regular</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="BottomNavMenuTextActive" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="fontFamily">@font/yp_regular</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="BottomNavMenu" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:background">@color/white</item>
+        <item name="itemIconTint">@color/bottom_nav_item_color</item>
+        <item name="itemTextColor">@color/bottom_nav_item_color</item>
+        <item name="itemTextAppearanceActive">@style/BottomNavMenuTextActive</item>
+        <item name="itemTextAppearanceInactive">@style/BottomNavMenuTextInactive</item>
+    </style>
 </resources>
