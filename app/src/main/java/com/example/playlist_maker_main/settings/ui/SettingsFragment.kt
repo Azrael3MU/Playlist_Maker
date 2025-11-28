@@ -4,40 +4,29 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import com.example.playlist_maker_main.App
 import com.example.playlist_maker_main.R
-import com.google.android.material.switchmaterial.SwitchMaterial
+import com.example.playlist_maker_main.databinding.FragmentSettingsBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private val viewModel: SettingsViewModel by viewModel()
 
-    private lateinit var share: LinearLayout
-    private lateinit var supportBtn: LinearLayout
-    private lateinit var agreementBtn: LinearLayout
-    private lateinit var settingsRoot: LinearLayout
-    private lateinit var themeSwitcher: SwitchMaterial
+    private var _binding: FragmentSettingsBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initViews(view)
+        _binding = FragmentSettingsBinding.bind(view)
+
         initListeners()
         observeViewModel()
     }
 
-    private fun initViews(view: View) {
-        share = view.findViewById(R.id.share_app)
-        supportBtn = view.findViewById(R.id.support_btn)
-        agreementBtn = view.findViewById(R.id.agreement)
-        settingsRoot = view.findViewById(R.id.settingsRoot)
-        themeSwitcher = view.findViewById(R.id.themeSwithcer)
-    }
-
-    private fun initListeners() {
-        share.setOnClickListener {
+    private fun initListeners() = with(binding) {
+        shareApp.setOnClickListener {
             val shareMessage = getString(R.string.share_link)
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
@@ -56,7 +45,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             startActivity(supportIntent)
         }
 
-        agreementBtn.setOnClickListener {
+        agreement.setOnClickListener {
             val agreementIntent = Intent(
                 Intent.ACTION_VIEW,
                 Uri.parse(getString(R.string.agreement_link))
@@ -64,7 +53,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             startActivity(agreementIntent)
         }
 
-        themeSwitcher.setOnCheckedChangeListener { _, isChecked ->
+        themeSwithcer.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onThemeToggled(isChecked)
         }
     }
@@ -75,13 +64,18 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         }
     }
 
-    private fun render(state: SettingsScreenState) {
+    private fun render(state: SettingsScreenState) = with(binding) {
         val app = requireContext().applicationContext as App
 
-        if (themeSwitcher.isChecked != state.isDarkThemeOn) {
-            themeSwitcher.isChecked = state.isDarkThemeOn
+        if (themeSwithcer.isChecked != state.isDarkThemeOn) {
+            themeSwithcer.isChecked = state.isDarkThemeOn
         }
 
         app.switchTheme(state.isDarkThemeOn)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
