@@ -2,12 +2,14 @@ package com.example.playlist_maker_main.player.ui
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -26,21 +28,9 @@ class PlayerViewModel : ViewModel() {
     private var isPrepared = false
     private var isPlaying = false
 
-    private val uiHandler = Handler(Looper.getMainLooper())
+    private var timerJob: Job? = null
+
     private val timeFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
-
-    private val updateTask = object : Runnable {
-        override fun run() {
-            val mp = mediaPlayer ?: return
-            if (!mp.isPlaying) return
-
-            val pos = mp.currentPosition
-            val text = timeFormat.format(pos)
-
-            _state.value = _state.value?.copy(currentPositionText = text)
-            uiHandler.postDelayed(this, UPDATE_PERIOD_MS)
-        }
-    }
 
     fun init(previewUrl: String?) {
         this.previewUrl = previewUrl
@@ -91,7 +81,7 @@ class PlayerViewModel : ViewModel() {
         mp.setOnCompletionListener {
             Log.d(TAG, "onCompletion()")
             isPlaying = false
-            uiHandler.removeCallbacks(updateTask)
+            timerJob?.cancel()
             _state.postValue(
                 _state.value?.copy(
                     isPlaying = false,
@@ -164,7 +154,7 @@ class PlayerViewModel : ViewModel() {
                 isPlaying = true,
                 errorMessage = null
             )
-            uiHandler.post(updateTask)
+            startTimer()
             Log.d(TAG, "startPlayback() started")
         } catch (e: Exception) {
             Log.e(TAG, "startPlayback() error: ${e.message}", e)
@@ -180,7 +170,7 @@ class PlayerViewModel : ViewModel() {
         try {
             mp.pause()
             isPlaying = false
-            uiHandler.removeCallbacks(updateTask)
+            timerJob?.cancel()
             _state.value = _state.value?.copy(isPlaying = false)
             Log.d(TAG, "pausePlayback() paused")
         } catch (e: Exception) {
@@ -191,8 +181,23 @@ class PlayerViewModel : ViewModel() {
         }
     }
 
+    private fun startTimer() {
+        timerJob = viewModelScope.launch {
+            while (isPlaying) {
+                mediaPlayer?.let { mp ->
+                    if (mp.isPlaying) {
+                        val pos = mp.currentPosition
+                        val text = timeFormat.format(pos)
+                        _state.value = _state.value?.copy(currentPositionText = text)
+                    }
+                }
+                delay(UPDATE_PERIOD_MS)
+            }
+        }
+    }
+
     private fun releasePlayer() {
-        uiHandler.removeCallbacks(updateTask)
+        timerJob?.cancel()
         try {
             mediaPlayer?.release()
         } catch (_: Exception) { }

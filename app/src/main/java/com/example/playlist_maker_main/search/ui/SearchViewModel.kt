@@ -3,17 +3,13 @@ package com.example.playlist_maker_main.search.ui
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.playlist_maker_main.search.domain.interactor.HistoryInteractor
 import com.example.playlist_maker_main.search.domain.interactor.SearchTracksInteractor
 import com.example.playlist_maker_main.search.domain.model.Track
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class SearchViewModel(
     private val searchInteractor: SearchTracksInteractor,
@@ -27,7 +23,6 @@ class SearchViewModel(
     private val _state = MutableLiveData<SearchScreenState>(SearchScreenState.Idle)
     val state: LiveData<SearchScreenState> = _state
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var searchJob: Job? = null
     private var lastQuery: String = ""
 
@@ -36,13 +31,14 @@ class SearchViewModel(
     }
 
     fun onQueryChanged(text: String) {
+        if (lastQuery == text) return
         lastQuery = text
 
         if (text.isBlank()) {
             searchJob?.cancel()
             showHistory()
         } else {
-            startSearchWithDebounce(text)
+            searchDebounce(text)
         }
     }
 
@@ -51,14 +47,15 @@ class SearchViewModel(
         if (q.isEmpty()) {
             showHistory()
         } else {
-            startSearchWithDebounce(q)
+            searchJob?.cancel()
+            searchRequest(q)
         }
     }
 
     fun onRetry() {
         val q = lastQuery.trim()
         if (q.isNotEmpty()) {
-            startSearchWithDebounce(q)
+            searchRequest(q)
         }
     }
 
@@ -82,37 +79,37 @@ class SearchViewModel(
         }
     }
 
-    private fun startSearchWithDebounce(query: String) {
+    private fun searchDebounce(query: String) {
         searchJob?.cancel()
-        searchJob = scope.launch {
+        searchJob = viewModelScope.launch {
             delay(SEARCH_DEBOUNCE_MS)
-
-            val q = query.trim()
-            if (q.isEmpty()) {
-                showHistory()
-                return@launch
-            }
-
-            _state.value = SearchScreenState.Loading
-
-            try {
-                val tracks = withContext(Dispatchers.IO) {
-                    searchInteractor.execute(q)
-                }
-
-                _state.value = if (tracks.isEmpty()) {
-                    SearchScreenState.EmptyResult
-                } else {
-                    SearchScreenState.Content(tracks)
-                }
-            } catch (e: Exception) {
-                _state.value = SearchScreenState.Error
-            }
+            searchRequest(query)
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        scope.cancel()
+    private fun searchRequest(query: String) {
+        if (query.isEmpty()) return
+
+        _state.value = SearchScreenState.Loading
+
+        viewModelScope.launch {
+            searchInteractor.searchTracks(query)
+                .collect { pair ->
+                    processResult(pair.first, pair.second)
+                }
+        }
+    }
+
+    private fun processResult(foundTracks: List<Track>?, errorMessage: String?) {
+        val tracks = foundTracks
+        if (tracks != null) {
+            if (tracks.isEmpty()) {
+                _state.value = SearchScreenState.EmptyResult
+            } else {
+                _state.value = SearchScreenState.Content(tracks)
+            }
+        } else {
+            _state.value = SearchScreenState.Error
+        }
     }
 }
