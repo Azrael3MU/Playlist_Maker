@@ -182,6 +182,7 @@ class PlayerViewModel : ViewModel() {
     }
 
     private fun startTimer() {
+        timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (isPlaying) {
                 mediaPlayer?.let { mp ->

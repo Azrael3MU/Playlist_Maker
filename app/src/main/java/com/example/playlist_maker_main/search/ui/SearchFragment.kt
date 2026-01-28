@@ -20,10 +20,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SearchFragment : Fragment(R.layout.fragment_search) {
 
-    companion object {
-        private const val CLICK_DEBOUNCE_DELAY = 100L
-    }
-
     private val viewModel: SearchViewModel by viewModel()
 
     private var _binding: FragmentSearchBinding? = null
@@ -41,6 +37,11 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         initViews()
         initListeners()
         observeViewModel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isClickAllowed = true
     }
 
     private fun initViews() = with(binding) {
@@ -187,4 +188,9 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         super.onDestroyView()
         _binding = null
     }
+
+    companion object {
+        private const val CLICK_DEBOUNCE_DELAY = 100L
+    }
+
 }
