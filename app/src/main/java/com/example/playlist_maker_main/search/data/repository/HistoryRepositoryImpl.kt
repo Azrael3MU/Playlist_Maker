@@ -10,7 +10,7 @@ import com.google.gson.reflect.TypeToken
 class HistoryRepositoryImpl(
     private val sharedPreferences: SharedPreferences,
     private val gson: Gson,
-    private val appDatabase: AppDatabase // <--- Добавили БД
+    private val appDatabase: AppDatabase
 ) : HistoryRepository {
 
     companion object {

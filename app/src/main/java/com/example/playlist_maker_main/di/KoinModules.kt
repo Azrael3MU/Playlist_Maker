@@ -22,6 +22,17 @@ import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
+import com.example.playlist_maker_main.media.data.db.AppDatabase
+import androidx.room.Room
+import com.example.playlist_maker_main.media.data.converters.TrackDbConverter
+import com.example.playlist_maker_main.media.data.repository.FavoritesRepositoryImpl
+import com.example.playlist_maker_main.media.domain.db.FavoritesInteractor
+import com.example.playlist_maker_main.media.domain.db.FavoritesRepository
+import com.example.playlist_maker_main.media.domain.impl.FavoritesInteractorImpl
+import com.example.playlist_maker_main.media.ui.MediaViewModel
+import com.example.playlist_maker_main.media.ui.favorites.FavoritesViewModel
+import com.example.playlist_maker_main.media.ui.playlists.PlaylistsViewModel
+
 
 val dataModule = module {
 
@@ -32,14 +43,16 @@ val dataModule = module {
     }
 
     single {
-        androidx.room.Room.databaseBuilder(androidContext(), com.example.playlist_maker_main.media.data.db.AppDatabase::class.java, "database.db")
+        Room.databaseBuilder(androidContext(), AppDatabase::class.java, "database.db")
             .build()
     }
 
-    factory { com.example.playlist_maker_main.media.data.converters.TrackDbConverter() }
+    single { get<AppDatabase>().trackDao() }
 
-    single<com.example.playlist_maker_main.media.domain.db.FavoritesRepository> {
-        com.example.playlist_maker_main.media.data.repository.FavoritesRepositoryImpl(get(), get())
+    factory { TrackDbConverter() }
+
+    single<FavoritesRepository> {
+        FavoritesRepositoryImpl(get(), get())
     }
 
     single<HistoryRepository> {
@@ -68,8 +81,8 @@ val domainModule = module {
 
     single<ThemeInteractor> { ThemeInteractorImpl(get()) }
 
-    single<com.example.playlist_maker_main.media.domain.db.FavoritesInteractor> {
-        com.example.playlist_maker_main.media.domain.impl.FavoritesInteractorImpl(get())
+    single<FavoritesInteractor> {
+        FavoritesInteractorImpl(get())
     }
 }
 
@@ -81,7 +94,7 @@ val presentationModule = module {
 
     viewModel { PlayerViewModel(get()) }
 
-    viewModel { com.example.playlist_maker_main.media.ui.MediaViewModel() }
-    viewModel { com.example.playlist_maker_main.media.ui.favorites.FavoritesViewModel(get()) }
-    viewModel { com.example.playlist_maker_main.media.ui.playlists.PlaylistsViewModel() }
+    viewModel { MediaViewModel() }
+    viewModel { FavoritesViewModel(get()) }
+    viewModel { PlaylistsViewModel() }
 }

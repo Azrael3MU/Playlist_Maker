@@ -22,9 +22,7 @@ class TracksRepositoryImpl(
                 val favoriteIds = appDatabase.trackDao().getTracksIds()
 
                 tracks.forEach { track ->
-                    if (favoriteIds.contains(track.trackId)) {
-                        track.isFavorite = true
-                    }
+                    track.isFavorite = favoriteIds.contains(track.trackId)
                 }
 
                 emit(Result.success(tracks))

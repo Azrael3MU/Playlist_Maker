@@ -35,6 +35,12 @@ class PlayerViewModel(
         this.currentTrack = track
         _isFavorite.value = track.isFavorite
 
+        viewModelScope.launch {
+            val actualFavoriteStatus = favoritesInteractor.isFavorite(track.trackId)
+            _isFavorite.postValue(actualFavoriteStatus)
+            track.isFavorite = actualFavoriteStatus
+        }
+
         if (track.previewUrl.isNullOrBlank()) {
             _state.value = PlayerScreenState(
                 isPlayButtonEnabled = false,

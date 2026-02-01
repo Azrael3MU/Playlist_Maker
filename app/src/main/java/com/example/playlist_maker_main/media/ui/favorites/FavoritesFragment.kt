@@ -35,6 +35,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         viewModel.state.observe(viewLifecycleOwner) { state ->
             render(state)
         }
+        viewModel.fillData()
     }
 
     override fun onResume() {
@@ -55,6 +56,11 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
     private fun render(state: FavoritesState) {
         when (state) {
+            is FavoritesState.Loading -> {
+                binding.favoritesRecycler.visibility = View.GONE
+                binding.emptyFavoritesContainer.visibility = View.GONE
+            }
+
             is FavoritesState.Empty -> {
                 binding.emptyFavoritesContainer.visibility = View.VISIBLE
                 binding.favoritesRecycler.visibility = View.GONE
@@ -79,7 +85,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         if (isClickAllowed) {
             isClickAllowed = false
             viewLifecycleOwner.lifecycleScope.launch {
-                delay(1000L)
+                delay(CLICK_DEBOUNCE_DELAY)
                 isClickAllowed = true
             }
         }
@@ -92,6 +98,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     }
 
     companion object {
+        private const val CLICK_DEBOUNCE_DELAY = 1000L
         fun newInstance() = FavoritesFragment()
     }
 }
