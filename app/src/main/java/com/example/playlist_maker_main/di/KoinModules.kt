@@ -31,8 +31,19 @@ val dataModule = module {
         androidContext().getSharedPreferences("playlist_maker_prefs", Context.MODE_PRIVATE)
     }
 
+    single {
+        androidx.room.Room.databaseBuilder(androidContext(), com.example.playlist_maker_main.media.data.db.AppDatabase::class.java, "database.db")
+            .build()
+    }
+
+    factory { com.example.playlist_maker_main.media.data.converters.TrackDbConverter() }
+
+    single<com.example.playlist_maker_main.media.domain.db.FavoritesRepository> {
+        com.example.playlist_maker_main.media.data.repository.FavoritesRepositoryImpl(get(), get())
+    }
+
     single<HistoryRepository> {
-        HistoryRepositoryImpl(get(), get())
+        HistoryRepositoryImpl(get(), get(), get())
     }
 
     single<ThemeRepository> {
@@ -44,7 +55,8 @@ val dataModule = module {
     }
 
     single { RetrofitProvider.api }
-    single<TracksRepository> { TracksRepositoryImpl(get()) }
+
+    single<TracksRepository> { TracksRepositoryImpl(get(), get()) }
 }
 
 
@@ -55,8 +67,11 @@ val domainModule = module {
     single<HistoryInteractor> { HistoryInteractorImpl(get(), capacity = 10) }
 
     single<ThemeInteractor> { ThemeInteractorImpl(get()) }
-}
 
+    single<com.example.playlist_maker_main.media.domain.db.FavoritesInteractor> {
+        com.example.playlist_maker_main.media.domain.impl.FavoritesInteractorImpl(get())
+    }
+}
 
 val presentationModule = module {
 
@@ -64,5 +79,9 @@ val presentationModule = module {
 
     viewModel { SettingsViewModel(get()) }
 
-    viewModel { PlayerViewModel() }
+    viewModel { PlayerViewModel(get()) }
+
+    viewModel { com.example.playlist_maker_main.media.ui.MediaViewModel() }
+    viewModel { com.example.playlist_maker_main.media.ui.favorites.FavoritesViewModel(get()) }
+    viewModel { com.example.playlist_maker_main.media.ui.playlists.PlaylistsViewModel() }
 }

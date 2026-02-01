@@ -7,6 +7,14 @@
     android:layout_height="match_parent"
     style="@style/AllBackground">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/favoritesRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_track" />
+
     <LinearLayout
         android:id="@+id/emptyFavoritesContainer"
         android:layout_width="wrap_content"

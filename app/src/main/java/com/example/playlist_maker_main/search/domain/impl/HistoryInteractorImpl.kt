@@ -5,21 +5,29 @@ import com.example.playlist_maker_main.search.domain.model.Track
 import com.example.playlist_maker_main.search.domain.repository.HistoryRepository
 
 class HistoryInteractorImpl(
-    private val repo: HistoryRepository,
+    private val repository: HistoryRepository,
     private val capacity: Int = 10
 ) : HistoryInteractor {
 
-    override fun get(): List<Track> = repo.load()
-
-    override fun push(current: List<Track>, track: Track): List<Track> {
-        val res = current.toMutableList()
-        res.removeAll { it.trackId == track.trackId }
-        res.add(0, track)
-        val trimmed = if (res.size > capacity) res.take(capacity) else res
-        return trimmed
+    override suspend fun get(): List<Track> {
+        return repository.getHistory()
     }
 
-    override fun save(list: List<Track>) = repo.save(list)
+    override fun push(history: List<Track>, track: Track): List<Track> {
+        val mutableHistory = history.toMutableList()
+        mutableHistory.removeIf { it.trackId == track.trackId }
+        mutableHistory.add(0, track)
+        if (mutableHistory.size > capacity) {
+            mutableHistory.removeAt(mutableHistory.lastIndex)
+        }
+        return mutableHistory
+    }
 
-    override fun clear() = repo.save(emptyList())
+    override fun save(history: List<Track>) {
+        repository.saveHistory(history)
+    }
+
+    override fun clear() {
+        repository.clearHistory()
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.playlist_maker_main.search.data.repository
 
+import com.example.playlist_maker_main.media.data.db.AppDatabase
 import com.example.playlist_maker_main.search.data.network.ITunesApi
 import com.example.playlist_maker_main.search.data.mapper.toDomain
 import com.example.playlist_maker_main.search.domain.model.Track
@@ -8,15 +9,25 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class TracksRepositoryImpl(
-    private val api: ITunesApi
+    private val api: ITunesApi,
+    private val appDatabase: AppDatabase
 ) : TracksRepository {
 
     override fun searchTracks(expression: String): Flow<Result<List<Track>>> = flow {
         try {
             val response = api.search(expression)
             if (response.results != null) {
-                val data = response.results.map { it.toDomain() }
-                emit(Result.success(data))
+                val tracks = response.results.map { it.toDomain() }
+
+                val favoriteIds = appDatabase.trackDao().getTracksIds()
+
+                tracks.forEach { track ->
+                    if (favoriteIds.contains(track.trackId)) {
+                        track.isFavorite = true
+                    }
+                }
+
+                emit(Result.success(tracks))
             } else {
                 emit(Result.failure(Exception("Ошибка сервера")))
             }

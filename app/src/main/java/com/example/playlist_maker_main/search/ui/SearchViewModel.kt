@@ -65,17 +65,21 @@ class SearchViewModel(
     }
 
     fun onTrackClicked(track: Track) {
-        val currentHistory = historyInteractor.get()
-        val updated = historyInteractor.push(currentHistory, track)
-        historyInteractor.save(updated)
+        viewModelScope.launch {
+            val currentHistory = historyInteractor.get()
+            val updated = historyInteractor.push(currentHistory, track)
+            historyInteractor.save(updated)
+        }
     }
 
     private fun showHistory() {
-        val list = historyInteractor.get()
-        _state.value = if (list.isEmpty()) {
-            SearchScreenState.Idle
-        } else {
-            SearchScreenState.History(list)
+        viewModelScope.launch {
+            val list = historyInteractor.get()
+            if (list.isEmpty()) {
+                _state.value = SearchScreenState.Idle
+            } else {
+                _state.value = SearchScreenState.History(list)
+            }
         }
     }
 
