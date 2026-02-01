@@ -7,12 +7,15 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.playlist_maker_main.R
 import com.example.playlist_maker_main.databinding.FragmentSearchBinding
 import com.example.playlist_maker_main.player.ui.PlayerFragment
 import com.example.playlist_maker_main.search.domain.model.Track
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SearchFragment : Fragment(R.layout.fragment_search) {
@@ -25,6 +28,8 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private lateinit var adapter: TrackAdapter
     private lateinit var historyAdapter: TrackAdapter
 
+    private var isClickAllowed = true
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSearchBinding.bind(view)
@@ -32,6 +37,11 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         initViews()
         initListeners()
         observeViewModel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isClickAllowed = true
     }
 
     private fun initViews() = with(binding) {
@@ -149,9 +159,23 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     }
 
     private fun onTrackClicked(track: Track) {
-        viewModel.onTrackClicked(track)
-        val args = bundleOf(PlayerFragment.ARG_TRACK to track)
-        findNavController().navigate(R.id.action_searchFragment_to_playerFragment, args)
+        if (clickDebounce()) {
+            viewModel.onTrackClicked(track)
+            val args = bundleOf(PlayerFragment.ARG_TRACK to track)
+            findNavController().navigate(R.id.action_searchFragment_to_playerFragment, args)
+        }
+    }
+
+    private fun clickDebounce(): Boolean {
+        val current = isClickAllowed
+        if (isClickAllowed) {
+            isClickAllowed = false
+            viewLifecycleOwner.lifecycleScope.launch {
+                delay(CLICK_DEBOUNCE_DELAY)
+                isClickAllowed = true
+            }
+        }
+        return current
     }
 
     private fun hideKeyboard() {
@@ -164,4 +188,9 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         super.onDestroyView()
         _binding = null
     }
+
+    companion object {
+        private const val CLICK_DEBOUNCE_DELAY = 100L
+    }
+
 }
