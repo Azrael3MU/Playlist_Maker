@@ -7,36 +7,41 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.playlist_maker_main.media.domain.db.FavoritesInteractor
+import com.example.playlist_maker_main.search.domain.model.Track
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class PlayerViewModel : ViewModel() {
-
-    companion object {
-        private const val TAG = "PlayerViewModel"
-        private const val UPDATE_PERIOD_MS = 300L
-    }
+class PlayerViewModel(
+    private val favoritesInteractor: FavoritesInteractor
+) : ViewModel() {
 
     private val _state = MutableLiveData(PlayerScreenState())
     val state: LiveData<PlayerScreenState> = _state
 
-    private var mediaPlayer: MediaPlayer? = null
-    private var previewUrl: String? = null
-    private var isPrepared = false
-    private var isPlaying = false
+    private val _isFavorite = MutableLiveData<Boolean>()
+    val isFavorite: LiveData<Boolean> = _isFavorite
 
+    private var mediaPlayer: MediaPlayer? = null
+    private var currentTrack: Track? = null
     private var timerJob: Job? = null
 
     private val timeFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
 
-    fun init(previewUrl: String?) {
-        this.previewUrl = previewUrl
-        Log.d(TAG, "init() previewUrl = $previewUrl")
+    fun init(track: Track) {
+        this.currentTrack = track
+        _isFavorite.value = track.isFavorite
 
-        if (previewUrl.isNullOrBlank()) {
+        viewModelScope.launch {
+            val actualFavoriteStatus = favoritesInteractor.isFavorite(track.trackId)
+            _isFavorite.postValue(actualFavoriteStatus)
+            track.isFavorite = actualFavoriteStatus
+        }
+
+        if (track.previewUrl.isNullOrBlank()) {
             _state.value = PlayerScreenState(
                 isPlayButtonEnabled = false,
                 isPlaying = false,
@@ -57,8 +62,6 @@ class PlayerViewModel : ViewModel() {
 
         val mp = MediaPlayer()
         mediaPlayer = mp
-        isPrepared = false
-        isPlaying = false
 
         mp.setAudioAttributes(
             AudioAttributes.Builder()
@@ -68,128 +71,76 @@ class PlayerViewModel : ViewModel() {
         )
 
         mp.setOnPreparedListener {
-            Log.d(TAG, "onPrepared()")
-            isPrepared = true
             _state.postValue(
-                _state.value?.copy(
-                    isPlayButtonEnabled = true,
-                    errorMessage = null
-                )
+                _state.value?.copy(isPlayButtonEnabled = true)
             )
         }
 
         mp.setOnCompletionListener {
-            Log.d(TAG, "onCompletion()")
-            isPlaying = false
             timerJob?.cancel()
             _state.postValue(
-                _state.value?.copy(
-                    isPlaying = false,
-                    currentPositionText = "00:00"
-                )
+                _state.value?.copy(isPlaying = false, currentPositionText = "00:00")
             )
         }
 
         try {
-            mp.setDataSource(previewUrl)
+            mp.setDataSource(track.previewUrl)
             mp.prepareAsync()
         } catch (e: Exception) {
-            Log.e(TAG, "prepareAsync failed: ${e.message}", e)
             _state.postValue(
-                PlayerScreenState(
-                    isPlayButtonEnabled = false,
-                    isPlaying = false,
-                    currentPositionText = "00:00",
-                    errorMessage = "Ошибка подготовки плеера"
-                )
+                PlayerScreenState(isPlayButtonEnabled = false, errorMessage = "Ошибка подготовки плеера")
             )
         }
     }
 
-    fun onPlayClicked() {
-        val mp = mediaPlayer
-        val url = previewUrl
-        Log.d(TAG, "onPlayClicked() mp=$mp url=$url isPrepared=$isPrepared")
-
-        if (mp == null || url.isNullOrBlank()) {
-            _state.value = _state.value?.copy(
-                errorMessage = "Плеер не готов"
-            )
-            return
-        }
-        if (!isPrepared) {
-            _state.value = _state.value?.copy(
-                errorMessage = "Трек ещё загружается..."
-            )
-            return
-        }
-
-        if (!isPlaying) {
-            startPlayback(mp)
-        } else {
-            pausePlayback(mp)
-        }
-    }
-
-    fun onStopView() {
-        mediaPlayer?.let { mp ->
-            if (mp.isPlaying) {
-                pausePlayback(mp)
+    fun onFavoriteClicked() {
+        val track = currentTrack ?: return
+        viewModelScope.launch {
+            if (track.isFavorite) {
+                favoritesInteractor.deleteTrack(track)
+                track.isFavorite = false
+                _isFavorite.value = false
+            } else {
+                favoritesInteractor.addTrack(track)
+                track.isFavorite = true
+                _isFavorite.value = true
             }
         }
     }
 
-    fun onErrorShown() {
-        val cur = _state.value ?: return
-        if (cur.errorMessage != null) {
-            _state.value = cur.copy(errorMessage = null)
-        }
-    }
-
-    private fun startPlayback(mp: MediaPlayer) {
-        try {
-            mp.start()
-            isPlaying = true
-            _state.value = _state.value?.copy(
-                isPlaying = true,
-                errorMessage = null
-            )
-            startTimer()
-            Log.d(TAG, "startPlayback() started")
-        } catch (e: Exception) {
-            Log.e(TAG, "startPlayback() error: ${e.message}", e)
-            isPlaying = false
-            _state.value = _state.value?.copy(
-                isPlaying = false,
-                errorMessage = "Не удалось начать воспроизведение"
-            )
-        }
-    }
-
-    private fun pausePlayback(mp: MediaPlayer) {
-        try {
+    fun onPlayClicked() {
+        val mp = mediaPlayer ?: return
+        if (_state.value?.isPlaying == true) {
             mp.pause()
-            isPlaying = false
             timerJob?.cancel()
             _state.value = _state.value?.copy(isPlaying = false)
-            Log.d(TAG, "pausePlayback() paused")
-        } catch (e: Exception) {
-            Log.e(TAG, "pausePlayback() error: ${e.message}", e)
-            _state.value = _state.value?.copy(
-                errorMessage = "Ошибка паузы плеера"
-            )
+        } else {
+            mp.start()
+            _state.value = _state.value?.copy(isPlaying = true)
+            startTimer()
         }
+    }
+
+    fun onStopView() {
+        if (_state.value?.isPlaying == true) {
+            mediaPlayer?.pause()
+            timerJob?.cancel()
+            _state.value = _state.value?.copy(isPlaying = false)
+        }
+    }
+
+    fun onErrorShown() {
+        _state.value = _state.value?.copy(errorMessage = null)
     }
 
     private fun startTimer() {
-        timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            while (isPlaying) {
+            while (_state.value?.isPlaying == true) {
                 mediaPlayer?.let { mp ->
                     if (mp.isPlaying) {
-                        val pos = mp.currentPosition
-                        val text = timeFormat.format(pos)
-                        _state.value = _state.value?.copy(currentPositionText = text)
+                        _state.value = _state.value?.copy(
+                            currentPositionText = timeFormat.format(mp.currentPosition)
+                        )
                     }
                 }
                 delay(UPDATE_PERIOD_MS)
@@ -199,16 +150,16 @@ class PlayerViewModel : ViewModel() {
 
     private fun releasePlayer() {
         timerJob?.cancel()
-        try {
-            mediaPlayer?.release()
-        } catch (_: Exception) { }
+        mediaPlayer?.release()
         mediaPlayer = null
-        isPrepared = false
-        isPlaying = false
     }
 
     override fun onCleared() {
         super.onCleared()
         releasePlayer()
+    }
+
+    companion object {
+        private const val UPDATE_PERIOD_MS = 300L
     }
 }

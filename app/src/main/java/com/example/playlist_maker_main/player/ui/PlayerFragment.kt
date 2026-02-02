@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -36,19 +37,26 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
         _binding = FragmentPlayerBinding.bind(view)
 
         initObservers()
-
         bindTrackInfo(track)
 
         binding.playBtn.setOnClickListener {
             viewModel.onPlayClicked()
         }
 
-        viewModel.init(track.previewUrl)
+        binding.favoriteBtn.setOnClickListener {
+            viewModel.onFavoriteClicked()
+        }
+
+        viewModel.init(track)
     }
 
     private fun initObservers() {
         viewModel.state.observe(viewLifecycleOwner) { state ->
             render(state)
+        }
+
+        viewModel.isFavorite.observe(viewLifecycleOwner) { isFavorite ->
+            renderFavorite(isFavorite)
         }
     }
 
@@ -61,6 +69,11 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
             Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.onErrorShown()
         }
+    }
+
+    private fun renderFavorite(isFavorite: Boolean) {
+        val icon = if (isFavorite) R.drawable.favorite_act_btn else R.drawable.favorite_btn
+        binding.favoriteBtn.setImageResource(icon)
     }
 
     private fun bindTrackInfo(t: Track) = with(binding) {

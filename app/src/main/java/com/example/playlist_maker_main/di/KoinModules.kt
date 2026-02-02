@@ -22,6 +22,17 @@ import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
+import com.example.playlist_maker_main.media.data.db.AppDatabase
+import androidx.room.Room
+import com.example.playlist_maker_main.media.data.converters.TrackDbConverter
+import com.example.playlist_maker_main.media.data.repository.FavoritesRepositoryImpl
+import com.example.playlist_maker_main.media.domain.db.FavoritesInteractor
+import com.example.playlist_maker_main.media.domain.db.FavoritesRepository
+import com.example.playlist_maker_main.media.domain.impl.FavoritesInteractorImpl
+import com.example.playlist_maker_main.media.ui.MediaViewModel
+import com.example.playlist_maker_main.media.ui.favorites.FavoritesViewModel
+import com.example.playlist_maker_main.media.ui.playlists.PlaylistsViewModel
+
 
 val dataModule = module {
 
@@ -31,8 +42,21 @@ val dataModule = module {
         androidContext().getSharedPreferences("playlist_maker_prefs", Context.MODE_PRIVATE)
     }
 
+    single {
+        Room.databaseBuilder(androidContext(), AppDatabase::class.java, "database.db")
+            .build()
+    }
+
+    single { get<AppDatabase>().trackDao() }
+
+    factory { TrackDbConverter() }
+
+    single<FavoritesRepository> {
+        FavoritesRepositoryImpl(get(), get())
+    }
+
     single<HistoryRepository> {
-        HistoryRepositoryImpl(get(), get())
+        HistoryRepositoryImpl(get(), get(), get())
     }
 
     single<ThemeRepository> {
@@ -44,7 +68,8 @@ val dataModule = module {
     }
 
     single { RetrofitProvider.api }
-    single<TracksRepository> { TracksRepositoryImpl(get()) }
+
+    single<TracksRepository> { TracksRepositoryImpl(get(), get()) }
 }
 
 
@@ -55,8 +80,11 @@ val domainModule = module {
     single<HistoryInteractor> { HistoryInteractorImpl(get(), capacity = 10) }
 
     single<ThemeInteractor> { ThemeInteractorImpl(get()) }
-}
 
+    single<FavoritesInteractor> {
+        FavoritesInteractorImpl(get())
+    }
+}
 
 val presentationModule = module {
 
@@ -64,5 +92,9 @@ val presentationModule = module {
 
     viewModel { SettingsViewModel(get()) }
 
-    viewModel { PlayerViewModel() }
+    viewModel { PlayerViewModel(get()) }
+
+    viewModel { MediaViewModel() }
+    viewModel { FavoritesViewModel(get()) }
+    viewModel { PlaylistsViewModel() }
 }

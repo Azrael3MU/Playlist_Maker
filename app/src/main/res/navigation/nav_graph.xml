@@ -17,7 +17,12 @@
     <fragment
         android:id="@+id/mediaFragment"
         android:name="com.example.playlist_maker_main.media.ui.MediaFragment"
-        tools:layout="@layout/fragment_media" />
+        tools:layout="@layout/fragment_media">
+        <action
+            android:id="@+id/action_mediaFragment_to_playerFragment"
+            app:destination="@id/playerFragment"
+            />
+    </fragment>
 
     <fragment
         android:id="@+id/settingsFragment"
