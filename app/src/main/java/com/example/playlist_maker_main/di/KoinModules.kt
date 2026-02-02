@@ -26,11 +26,16 @@ import com.example.playlist_maker_main.media.data.db.AppDatabase
 import androidx.room.Room
 import com.example.playlist_maker_main.media.data.converters.TrackDbConverter
 import com.example.playlist_maker_main.media.data.repository.FavoritesRepositoryImpl
+import com.example.playlist_maker_main.media.data.repository.PlaylistRepositoryImpl
 import com.example.playlist_maker_main.media.domain.db.FavoritesInteractor
 import com.example.playlist_maker_main.media.domain.db.FavoritesRepository
+import com.example.playlist_maker_main.media.domain.db.PlaylistInteractor
+import com.example.playlist_maker_main.media.domain.db.PlaylistRepository
 import com.example.playlist_maker_main.media.domain.impl.FavoritesInteractorImpl
+import com.example.playlist_maker_main.media.domain.impl.PlaylistInteractorImpl
 import com.example.playlist_maker_main.media.ui.MediaViewModel
 import com.example.playlist_maker_main.media.ui.favorites.FavoritesViewModel
+import com.example.playlist_maker_main.media.ui.playlists.NewPlaylistViewModel
 import com.example.playlist_maker_main.media.ui.playlists.PlaylistsViewModel
 
 
@@ -44,6 +49,7 @@ val dataModule = module {
 
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "database.db")
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -70,6 +76,10 @@ val dataModule = module {
     single { RetrofitProvider.api }
 
     single<TracksRepository> { TracksRepositoryImpl(get(), get()) }
+
+    single { get<AppDatabase>().playlistDao() }
+    single<PlaylistRepository> { PlaylistRepositoryImpl(get(), get(), get()) }
+    single { get<AppDatabase>().PlaylistTrackDao() }
 }
 
 
@@ -84,6 +94,7 @@ val domainModule = module {
     single<FavoritesInteractor> {
         FavoritesInteractorImpl(get())
     }
+    single<PlaylistInteractor> { PlaylistInteractorImpl(get()) }
 }
 
 val presentationModule = module {
@@ -92,9 +103,11 @@ val presentationModule = module {
 
     viewModel { SettingsViewModel(get()) }
 
-    viewModel { PlayerViewModel(get()) }
+    viewModel { PlayerViewModel(get(), get()) }
 
     viewModel { MediaViewModel() }
     viewModel { FavoritesViewModel(get()) }
-    viewModel { PlaylistsViewModel() }
+    viewModel { PlaylistsViewModel(get()) }
+    viewModel { NewPlaylistViewModel(get()) }
+
 }

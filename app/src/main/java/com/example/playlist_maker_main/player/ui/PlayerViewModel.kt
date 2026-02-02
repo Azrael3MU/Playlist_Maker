@@ -1,13 +1,12 @@
 package com.example.playlist_maker_main.player.ui
 
-import android.media.AudioAttributes
-import android.media.MediaPlayer
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlist_maker_main.media.domain.db.FavoritesInteractor
+import com.example.playlist_maker_main.media.domain.db.PlaylistInteractor // Импорт нового интерактора
+import com.example.playlist_maker_main.media.domain.model.Playlist
 import com.example.playlist_maker_main.search.domain.model.Track
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -16,7 +15,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 class PlayerViewModel(
-    private val favoritesInteractor: FavoritesInteractor
+    private val favoritesInteractor: FavoritesInteractor,
+    private val playlistInteractor: PlaylistInteractor
 ) : ViewModel() {
 
     private val _state = MutableLiveData(PlayerScreenState())
@@ -25,10 +25,15 @@ class PlayerViewModel(
     private val _isFavorite = MutableLiveData<Boolean>()
     val isFavorite: LiveData<Boolean> = _isFavorite
 
-    private var mediaPlayer: MediaPlayer? = null
+    private val _playlists = MutableLiveData<List<Playlist>>()
+    val playlists: LiveData<List<Playlist>> = _playlists
+
+    private val _addingResult = MutableLiveData<Pair<String, Boolean>>()
+    val addingResult: LiveData<Pair<String, Boolean>> = _addingResult
+
+    private var mediaPlayer: android.media.MediaPlayer? = null
     private var currentTrack: Track? = null
     private var timerJob: Job? = null
-
     private val timeFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
 
     fun init(track: Track) {
@@ -42,54 +47,50 @@ class PlayerViewModel(
         }
 
         if (track.previewUrl.isNullOrBlank()) {
-            _state.value = PlayerScreenState(
-                isPlayButtonEnabled = false,
-                isPlaying = false,
-                currentPositionText = "00:00",
-                errorMessage = "Нет ссылки на превью трека"
-            )
+            _state.value = PlayerScreenState(isPlayButtonEnabled = false, currentPositionText = "00:00")
             return
         }
 
         releasePlayer()
-
-        _state.value = PlayerScreenState(
-            isPlayButtonEnabled = false,
-            isPlaying = false,
-            currentPositionText = "00:00",
-            errorMessage = null
-        )
-
-        val mp = MediaPlayer()
+        val mp = android.media.MediaPlayer()
         mediaPlayer = mp
+        mp.setAudioAttributes(android.media.AudioAttributes.Builder()
+            .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC).build())
 
-        mp.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-        )
-
-        mp.setOnPreparedListener {
-            _state.postValue(
-                _state.value?.copy(isPlayButtonEnabled = true)
-            )
-        }
-
+        mp.setOnPreparedListener { _state.postValue(_state.value?.copy(isPlayButtonEnabled = true)) }
         mp.setOnCompletionListener {
             timerJob?.cancel()
-            _state.postValue(
-                _state.value?.copy(isPlaying = false, currentPositionText = "00:00")
-            )
+            _state.postValue(_state.value?.copy(isPlaying = false, currentPositionText = "00:00"))
         }
 
         try {
             mp.setDataSource(track.previewUrl)
             mp.prepareAsync()
         } catch (e: Exception) {
-            _state.postValue(
-                PlayerScreenState(isPlayButtonEnabled = false, errorMessage = "Ошибка подготовки плеера")
-            )
+            _state.postValue(PlayerScreenState(isPlayButtonEnabled = false))
+        }
+    }
+
+    fun getPlaylists() {
+        viewModelScope.launch {
+            playlistInteractor.getPlaylists().collect { list ->
+                _playlists.postValue(list)
+            }
+        }
+    }
+
+    fun addTrackToPlaylist(playlist: Playlist) {
+        val track = currentTrack ?: return
+
+        if (playlist.trackIds.contains(track.trackId)) {
+            _addingResult.postValue("Трек уже добавлен в плейлист ${playlist.name}" to false)
+        } else {
+            viewModelScope.launch {
+                playlistInteractor.addTrackToPlaylist(track, playlist)
+                _addingResult.postValue("Добавлено в плейлист ${playlist.name}" to true)
+                getPlaylists() // Обновляем список, чтобы счетчик треков изменился
+            }
         }
     }
 
@@ -138,12 +139,10 @@ class PlayerViewModel(
             while (_state.value?.isPlaying == true) {
                 mediaPlayer?.let { mp ->
                     if (mp.isPlaying) {
-                        _state.value = _state.value?.copy(
-                            currentPositionText = timeFormat.format(mp.currentPosition)
-                        )
+                        _state.value = _state.value?.copy(currentPositionText = timeFormat.format(mp.currentPosition))
                     }
                 }
-                delay(UPDATE_PERIOD_MS)
+                delay(300L)
             }
         }
     }
