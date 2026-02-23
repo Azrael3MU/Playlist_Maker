@@ -33,21 +33,13 @@ class PlaylistAdapter(private val playlists: List<Playlist>) :
 
             Glide.with(itemView)
                 .load(playlist.imagePath)
-                .placeholder(R.drawable.player_placeholder)
+                .placeholder(R.drawable.placeholder)
                 .transform(CenterCrop(), RoundedCorners(8))
                 .into(binding.ivPlaylistCover)
         }
 
         private fun formatTrackCount(count: Int): String {
-            val rest10 = count % 10
-            val rest100 = count % 100
-            val word = when {
-                rest100 in 11..19 -> "треков"
-                rest10 == 1 -> "трек"
-                rest10 in 2..4 -> "трека"
-                else -> "треков"
-            }
-            return "$count $word"
+            return itemView.context.resources.getQuantityString(R.plurals.track_count, count, count)
         }
     }
 }

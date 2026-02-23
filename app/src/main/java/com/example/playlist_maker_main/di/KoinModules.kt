@@ -78,7 +78,7 @@ val dataModule = module {
     single<TracksRepository> { TracksRepositoryImpl(get(), get()) }
 
     single { get<AppDatabase>().playlistDao() }
-    single<PlaylistRepository> { PlaylistRepositoryImpl(get(), get(), get()) }
+    single<PlaylistRepository> { PlaylistRepositoryImpl(get(), get(), get(), gson = get()) }
     single { get<AppDatabase>().PlaylistTrackDao() }
 }
 

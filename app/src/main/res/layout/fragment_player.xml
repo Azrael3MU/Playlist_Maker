@@ -281,7 +281,7 @@
         android:orientation="vertical"
         android:paddingHorizontal="16dp"
         app:behavior_hideable="true"
-        app:behavior_peekHeight="240dp"
+        app:behavior_peekHeight="505dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         <View
@@ -289,7 +289,7 @@
             android:layout_height="4dp"
             android:layout_gravity="center"
             android:layout_marginTop="8dp"
-            android:background="@drawable/dashed_border" />
+            android:background="@drawable/bottom_sheet" />
 
         <TextView
             style="@style/MediaFragmentTextStyle"

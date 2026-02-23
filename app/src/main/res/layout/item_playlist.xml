@@ -9,8 +9,8 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cvPlaylistCover"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp"
         android:layout_gravity="center"
@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/player_placeholder" />
+            android:src="@drawable/placeholder" />
     </androidx.cardview.widget.CardView>
 
     <TextView

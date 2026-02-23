@@ -113,7 +113,6 @@
         <item name="boxCornerRadiusTopEnd">8dp</item>
         <item name="boxCornerRadiusBottomStart">8dp</item>
         <item name="boxCornerRadiusBottomEnd">8dp</item>
-        <item name="android:textColorHint">@color/YPTextGrey</item>
     </style>
 
     <style name="PlaylistInputEditText" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
@@ -130,5 +129,9 @@
         <item name="fontFamily">@font/yp_medium</item>
         <item name="textAllCaps">false</item>
         <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="RoundedCorners8">
+        <item name="cornerSize">8dp</item>
     </style>
 </resources>

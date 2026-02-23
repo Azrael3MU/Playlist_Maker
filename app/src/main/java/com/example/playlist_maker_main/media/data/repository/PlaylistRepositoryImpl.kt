@@ -1,5 +1,10 @@
 package com.example.playlist_maker_main.media.data.repository
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Environment
 import com.example.playlist_maker_main.media.data.db.AppDatabase
 import com.example.playlist_maker_main.media.data.db.dao.PlaylistDao
 import com.example.playlist_maker_main.media.data.db.dao.PlaylistTrackDao
@@ -12,8 +17,11 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import java.io.File
+import java.io.FileOutputStream
 
 class PlaylistRepositoryImpl(
+    private val context: Context,
     private val playlistDao: PlaylistDao,
     private val playlistTrackDao: PlaylistTrackDao,
     private val gson: Gson
@@ -22,6 +30,20 @@ class PlaylistRepositoryImpl(
     override suspend fun addPlaylist(playlist: Playlist) {
         val entity = convertToEntity(playlist)
         playlistDao.insertPlaylist(entity)
+    }
+
+    override fun saveImageToPrivateStorage(uri: Uri): String {
+        val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "playlist_covers")
+        if (!filePath.exists()) filePath.mkdirs()
+        val file = File(filePath, "cover_${System.currentTimeMillis()}.jpg")
+
+        context.contentResolver.openInputStream(uri).use { inputStream ->
+            FileOutputStream(file).use { outputStream ->
+                BitmapFactory.decodeStream(inputStream)
+                    .compress(Bitmap.CompressFormat.JPEG, 30, outputStream)
+            }
+        }
+        return file.absolutePath
     }
 
     override fun getPlaylists(): Flow<List<Playlist>> = flow {

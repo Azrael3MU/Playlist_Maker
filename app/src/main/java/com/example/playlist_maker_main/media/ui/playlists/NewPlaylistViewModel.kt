@@ -1,5 +1,6 @@
 package com.example.playlist_maker_main.media.ui.playlists
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,5 +23,8 @@ class NewPlaylistViewModel(private val interactor: PlaylistInteractor) : ViewMod
                 )
             )
         }
+    }
+    fun saveImage(uri: Uri): String {
+        return interactor.saveImageToPrivateStorage(uri)
     }
 }

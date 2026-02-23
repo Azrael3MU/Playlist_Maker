@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.playlist_maker_main.R
@@ -53,14 +54,17 @@ class NewPlaylistFragment : Fragment(R.layout.fragment_new_playlist) {
             }
             override fun afterTextChanged(s: Editable?) {}
         }
-        binding.etName.addTextChangedListener(textWatcher)
+        binding.etName.doOnTextChanged { text, _, _, _, ->
+            binding.btnCreate.isEnabled = !text.isNullOrBlank()
+        }
 
         binding.btnCreate.setOnClickListener {
             val name = binding.etName.text.toString()
             val description = binding.etDescription.text.toString()
-            val savedImagePath = imageUri?.let { saveImageToInternalStorage(it) }
+            val savedPath = imageUri?.let { viewModel.saveImage(it) }
 
-            viewModel.createPlaylist(name, description, savedImagePath)
+
+            viewModel.createPlaylist(name, description, savedPath)
 
             Toast.makeText(requireContext(), "Плейлист $name создан", Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()
