@@ -8,10 +8,14 @@ import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -41,6 +45,14 @@ class NewPlaylistFragment : Fragment(R.layout.fragment_new_playlist) {
                 binding.ivPlaylistCover.setImageURI(uri)
                 binding.ivPlaylistCover.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
             }
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.btnCreate) { view, insets ->
+            val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = navigationBars.bottom
+            }
+            insets
         }
 
         binding.ivPlaylistCover.setOnClickListener {
@@ -94,10 +106,10 @@ class NewPlaylistFragment : Fragment(R.layout.fragment_new_playlist) {
 
     private fun showConfirmDialog() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Завершить создание плейлиста?")
-            .setMessage("Все несохраненные данные будут потеряны")
-            .setNegativeButton("Отмена") { _, _ -> }
-            .setPositiveButton("Завершить") { _, _ ->
+            .setTitle(R.string.finish_creating)
+            .setMessage(R.string.unsaved)
+            .setNegativeButton(R.string.cancel) { _, _ -> }
+            .setPositiveButton(R.string.finish) { _, _ ->
                 findNavController().popBackStack()
             }
             .show()
