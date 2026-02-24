@@ -3,4 +3,7 @@
     <color name="media_text_active">#FFFFFFFF</color>
     <color name="media_text_inactive">#FFFFFFFF</color>
     <color name="bottom_text_inactive">#FFFFFFFF</color>
+    <color name="text_color_primary">@color/white</color>
+    <color name="box_stroke_color_default">@color/white</color>
+    <color name="sheet_bg">@color/black</color>
 </resources>

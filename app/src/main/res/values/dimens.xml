@@ -2,4 +2,5 @@
 <resources>
     <dimen name="corner_radius">2dp</dimen>
     <dimen name="corner_8">8dp</dimen>
+    <dimen name="padding_32">32dp</dimen>
 </resources>
