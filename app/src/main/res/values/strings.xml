@@ -45,4 +45,22 @@
     <string name="finish">Завершить</string>
     <string name="finish_creating">"Завершить создание плейлиста?"</string>
     <string name="unsaved">"Все несохраненные данные будут потеряны"</string>
+    <plurals name="minutes_count">
+        <item quantity="one">%d минута</item>
+        <item quantity="few">%d минуты</item>
+        <item quantity="many">%d минут</item>
+        <item quantity="other">%d минут</item>
+    </plurals>
+    <string name="empty_playlist">В этом плейлисте ещё нет треков</string>
+    <string name="delete_track_title">Хотите удалить трек?</string>
+    <string name="delete_playlist_title">Хотите удалить плейлист?</string>
+    <string name="no">нет</string>
+    <string name="yes">да</string>
+    <string name="share_playlist">Поделиться</string>
+    <string name="change_playlist">Редактировать информацию</string>
+    <string name="delete_playlist">Удалить плейлист</string>
+    <string name="edit">Редактировать</string>
+    <string name="save">Сохранить</string>
+    <string name="playlist_created">Плейлист %s создан</string>
+    <string name="delete_playlist_message">Если есть сообщение</string>
 </resources>
