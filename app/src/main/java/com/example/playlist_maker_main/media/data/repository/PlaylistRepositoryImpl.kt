@@ -139,6 +139,21 @@ class PlaylistRepositoryImpl(
         checkAndDeleteTrackFromStorage(trackId)
     }
 
+    override suspend fun deletePlaylist(playlistId: Int) {
+        val playlistEntity = playlistDao.getPlaylistById(playlistId) ?: return
+        val playlist = convertToDomain(playlistEntity)
+
+        playlistDao.deletePlaylistById(playlistId)
+
+        try {
+            playlist.trackIds.forEach { trackId ->
+                checkAndDeleteTrackFromStorage(trackId)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private suspend fun checkAndDeleteTrackFromStorage(trackId: Long) {
         val allPlaylists = playlistDao.getPlaylists()
         val type = object : TypeToken<List<Long>>() {}.type
@@ -146,11 +161,7 @@ class PlaylistRepositoryImpl(
 
         for (entity in allPlaylists) {
             val ids: List<Long> = try {
-                if (entity.trackIds.isNullOrBlank()) {
-                    emptyList()
-                } else {
-                    gson.fromJson(entity.trackIds, type) ?: emptyList()
-                }
+                gson.fromJson(entity.trackIds, type) ?: emptyList()
             } catch (e: Exception) {
                 emptyList()
             }
@@ -163,16 +174,6 @@ class PlaylistRepositoryImpl(
 
         if (!isUsed) {
             playlistTrackDao.deleteTrackById(trackId)
-        }
-    }
-    override suspend fun deletePlaylist(playlistId: Int) {
-        val playlistEntity = playlistDao.getPlaylistById(playlistId)
-        if (playlistEntity == null) return
-        val playlist = convertToDomain(playlistEntity)
-
-        playlistDao.deletePlaylistById(playlistId)
-        playlist.trackIds.forEach { trackId ->
-            checkAndDeleteTrackFromStorage(trackId)
         }
     }
 

@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/YPGrey">
+    android:layout_height="match_parent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/YPGrey">
 
         <ImageView
             android:id="@+id/ivPlaylistCoverLarge"
@@ -98,7 +98,7 @@
         android:id="@+id/tracksBottomSheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        style="@style/AllBackground"
+        android:background="@drawable/bottom_sheet_bg"
         android:orientation="vertical"
         app:behavior_hideable="false"
         app:behavior_peekHeight="266dp"
@@ -114,13 +114,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/tvEmptyPlaylistMessage"
+            android:layout_marginStart="16dp"
             android:text="@string/empty_playlist"
             android:visibility="gone"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvTracks"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            style="@style/PlaylistTracksBackground"/>
     </LinearLayout>
 
     <View

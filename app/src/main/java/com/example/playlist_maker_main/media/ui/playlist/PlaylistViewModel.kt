@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.playlist_maker_main.media.domain.db.PlaylistInteractor
 import com.example.playlist_maker_main.media.domain.model.Playlist
 import com.example.playlist_maker_main.search.domain.model.Track
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class PlaylistViewModel(
@@ -20,27 +21,47 @@ class PlaylistViewModel(
     private val _tracks = MutableLiveData<List<Track>>()
     val tracks: LiveData<List<Track>> = _tracks
 
+    private val _closeScreen = MutableLiveData<Unit>()
+    val closeScreen: LiveData<Unit> = _closeScreen
+
+
     fun fillData() {
         viewModelScope.launch {
             val playlistData = interactor.getPlaylistById(playlistId)
             _playlist.postValue(playlistData)
 
-            interactor.getTracksByIds(playlistData.trackIds).collect { trackList ->
-                _tracks.postValue(trackList)
-            }
+            val trackList = interactor.getTracksByIds(playlistData.trackIds).first()
+            _tracks.postValue(trackList)
         }
     }
 
     fun deleteTrack(trackId: Long) {
         viewModelScope.launch {
             interactor.deleteTrackFromPlaylist(trackId, playlistId)
-            fillData()
+
+            val currentPlaylist = _playlist.value
+            if (currentPlaylist != null) {
+                val updatedIds = currentPlaylist.trackIds.filter { it != trackId }
+                _playlist.postValue(
+                    currentPlaylist.copy(
+                        trackIds = updatedIds,
+                        tracksCount = updatedIds.size
+                    )
+                )
+            }
+
+            val currentTracks = _tracks.value
+            if (currentTracks != null) {
+                val updatedTracks = currentTracks.filter { it.trackId != trackId }
+                _tracks.postValue(updatedTracks)
+            }
         }
     }
 
     fun deletePlaylist() {
         viewModelScope.launch {
             interactor.deletePlaylist(playlistId)
+            _closeScreen.postValue(Unit)
         }
     }
 }

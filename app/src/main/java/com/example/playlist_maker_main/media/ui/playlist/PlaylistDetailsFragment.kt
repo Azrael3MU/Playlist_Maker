@@ -107,6 +107,10 @@ class PlaylistDetailsFragment : Fragment(R.layout.fragment_playlist_details) {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { findNavController().popBackStack() }
         })
+
+        viewModel.closeScreen.observe(viewLifecycleOwner) {
+            findNavController().popBackStack()
+        }
     }
 
     private fun setupMenuBottomSheet() {
@@ -176,7 +180,6 @@ class PlaylistDetailsFragment : Fragment(R.layout.fragment_playlist_details) {
             .setNegativeButton(getString(R.string.no)) { _, _ -> }
             .setPositiveButton(getString(R.string.yes)) { _, _ ->
                 viewModel.deletePlaylist()
-                findNavController().popBackStack()
             }
             .show()
     }
