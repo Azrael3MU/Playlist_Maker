@@ -24,6 +24,16 @@ class NewPlaylistViewModel(private val interactor: PlaylistInteractor) : ViewMod
             )
         }
     }
+    fun updatePlaylist(playlist: Playlist, name: String, description: String?, imagePath: String?) {
+        viewModelScope.launch {
+            val updatedPlaylist = playlist.copy(
+                name = name,
+                description = description,
+                imagePath = imagePath ?: playlist.imagePath
+            )
+            interactor.addPlaylist(updatedPlaylist)
+        }
+    }
     fun saveImage(uri: Uri): String {
         return interactor.saveImageToPrivateStorage(uri)
     }

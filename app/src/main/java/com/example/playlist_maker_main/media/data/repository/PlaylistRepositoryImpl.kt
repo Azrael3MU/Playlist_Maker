@@ -17,6 +17,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.io.File
 import java.io.FileOutputStream
 
@@ -100,4 +101,80 @@ class PlaylistRepositoryImpl(
             previewUrl = track.previewUrl
         )
     }
+    private fun convertToTrackDomain(entity: PlaylistTrackEntity): Track {
+        return Track(
+            trackId = entity.trackId,
+            trackName = entity.trackName,
+            artistName = entity.artistName,
+            trackTimeMillis = entity.trackTimeMillis,
+            artworkUrl100 = entity.artworkUrl100,
+            collectionName = entity.collectionName,
+            releaseDate = entity.releaseDate,
+            primaryGenreName = entity.primaryGenreName,
+            country = entity.country,
+            previewUrl = entity.previewUrl
+        )
+    }
+    override suspend fun getPlaylistById(id: Int): Playlist {
+        return convertToDomain(playlistDao.getPlaylistById(id))
+    }
+
+    override fun getTracksByIds(ids: List<Long>): Flow<List<Track>> {
+        return playlistTrackDao.getTracksForPlaylists().map { entities ->
+            entities.filter { ids.contains(it.trackId) }
+                .map { entity -> convertToTrackDomain(entity) }
+                .reversed()
+        }
+    }
+
+    override suspend fun deleteTrackFromPlaylist(trackId: Long, playlistId: Int) {
+        val playlistEntity = playlistDao.getPlaylistById(playlistId)
+        val playlist = convertToDomain(playlistEntity)
+        val updatedIds = playlist.trackIds.filter { it != trackId }
+        val updatedPlaylist = playlist.copy(
+            trackIds = updatedIds,
+            tracksCount = updatedIds.size
+        )
+        playlistDao.updatePlaylist(convertToEntity(updatedPlaylist))
+        checkAndDeleteTrackFromStorage(trackId)
+    }
+
+    override suspend fun deletePlaylist(playlistId: Int) {
+        val playlistEntity = playlistDao.getPlaylistById(playlistId) ?: return
+        val playlist = convertToDomain(playlistEntity)
+
+        playlistDao.deletePlaylistById(playlistId)
+
+        try {
+            playlist.trackIds.forEach { trackId ->
+                checkAndDeleteTrackFromStorage(trackId)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun checkAndDeleteTrackFromStorage(trackId: Long) {
+        val allPlaylists = playlistDao.getPlaylists()
+        val type = object : TypeToken<List<Long>>() {}.type
+        var isUsed = false
+
+        for (entity in allPlaylists) {
+            val ids: List<Long> = try {
+                gson.fromJson(entity.trackIds, type) ?: emptyList()
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            if (ids.contains(trackId)) {
+                isUsed = true
+                break
+            }
+        }
+
+        if (!isUsed) {
+            playlistTrackDao.deleteTrackById(trackId)
+        }
+    }
+
 }

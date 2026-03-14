@@ -45,11 +45,11 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     }
 
     private fun initViews() = with(binding) {
-        adapter = TrackAdapter(emptyList()) { track -> onTrackClicked(track) }
+        adapter = TrackAdapter(emptyList(), onClick = { track -> onTrackClicked(track) })
         tracksRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         tracksRecyclerView.adapter = adapter
 
-        historyAdapter = TrackAdapter(emptyList()) { track -> onTrackClicked(track) }
+        historyAdapter = TrackAdapter(emptyList(), onClick = { track -> onTrackClicked(track) })
         historyRecycler.layoutManager = LinearLayoutManager(requireContext())
         historyRecycler.adapter = historyAdapter
     }
@@ -120,7 +120,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                 errorContainer.visibility = View.GONE
                 historyContainer.visibility = View.GONE
 
-                adapter = TrackAdapter(state.tracks) { track -> onTrackClicked(track) }
+                adapter = TrackAdapter(state.tracks, onClick = { track -> onTrackClicked(track) })
                 tracksRecyclerView.adapter = adapter
             }
 
@@ -151,7 +151,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                 } else {
                     historyContainer.visibility = View.VISIBLE
                     historyAdapter =
-                        TrackAdapter(state.items) { track -> onTrackClicked(track) }
+                        TrackAdapter(state.items, onClick = { track -> onTrackClicked(track) })
                     historyRecycler.adapter = historyAdapter
                 }
             }
