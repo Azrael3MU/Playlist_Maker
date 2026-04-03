@@ -14,7 +14,8 @@ import com.example.playlist_maker_main.search.domain.model.Track
 
 class TrackAdapter(
     private var tracks: List<Track>,
-    private val onClick: (Track) -> Unit
+    private val onClick: (Track) -> Unit,
+    private val onLongClick: ((Track) -> Unit)? = null
 ) : RecyclerView.Adapter<TrackAdapter.TrackVH>() {
 
     fun submitList(list: List<Track>) {
@@ -37,11 +38,9 @@ class TrackAdapter(
 
     override fun onBindViewHolder(h: TrackVH, pos: Int) {
         val t = tracks[pos]
-        h.artist.text = ""
         h.name.text = t.trackName
         h.artist.text = t.artistName
         h.time.text = t.durationStr()
-
 
         val radius = h.itemView.context.resources.getDimensionPixelSize(R.dimen.corner_radius)
         Glide.with(h.itemView)
@@ -51,10 +50,13 @@ class TrackAdapter(
             .into(h.artwork)
 
         h.itemView.setOnClickListener { onClick(t) }
-    }
-    private fun dpToPx(view: View, dp: Int): Int {
-        val d = view.resources.displayMetrics.density
-        return (dp * d + 0.5f).toInt()
+
+        if (onLongClick != null) {
+            h.itemView.setOnLongClickListener {
+                onLongClick.invoke(t)
+                true
+            }
+        }
     }
 
     override fun getItemCount() = tracks.size

@@ -35,6 +35,7 @@ import com.example.playlist_maker_main.media.domain.impl.FavoritesInteractorImpl
 import com.example.playlist_maker_main.media.domain.impl.PlaylistInteractorImpl
 import com.example.playlist_maker_main.media.ui.MediaViewModel
 import com.example.playlist_maker_main.media.ui.favorites.FavoritesViewModel
+import com.example.playlist_maker_main.media.ui.playlist.PlaylistViewModel
 import com.example.playlist_maker_main.media.ui.playlists.NewPlaylistViewModel
 import com.example.playlist_maker_main.media.ui.playlists.PlaylistsViewModel
 
@@ -109,5 +110,8 @@ val presentationModule = module {
     viewModel { FavoritesViewModel(get()) }
     viewModel { PlaylistsViewModel(get()) }
     viewModel { NewPlaylistViewModel(get()) }
+    viewModel { (playlistId: Int) ->
+        PlaylistViewModel(playlistId, get())
+    }
 
 }

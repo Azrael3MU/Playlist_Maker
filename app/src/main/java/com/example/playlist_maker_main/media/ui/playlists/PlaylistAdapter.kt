@@ -10,8 +10,10 @@ import com.example.playlist_maker_main.R
 import com.example.playlist_maker_main.databinding.ItemPlaylistBinding
 import com.example.playlist_maker_main.media.domain.model.Playlist
 
-class PlaylistAdapter(private val playlists: List<Playlist>) :
-    RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder>() {
+class PlaylistAdapter(
+    private val playlists: List<Playlist>,
+    private val clickListener: (Playlist) -> Unit
+) : RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaylistViewHolder {
         val binding = ItemPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -19,7 +21,12 @@ class PlaylistAdapter(private val playlists: List<Playlist>) :
     }
 
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
-        holder.bind(playlists[position])
+        val playlist = playlists[position]
+        holder.bind(playlist)
+
+        holder.itemView.setOnClickListener {
+            clickListener(playlist)
+        }
     }
 
     override fun getItemCount() = playlists.size

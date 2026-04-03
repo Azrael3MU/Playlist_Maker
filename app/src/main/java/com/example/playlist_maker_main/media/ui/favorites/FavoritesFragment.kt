@@ -44,12 +44,13 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     }
 
     private fun setupRecyclerView() {
-        adapter = TrackAdapter(emptyList()) { track ->
+        adapter = TrackAdapter(emptyList(), onClick ={ track ->
             if (clickDebounce()) {
                 val args = bundleOf(PlayerFragment.ARG_TRACK to track)
                 findNavController().navigate(R.id.action_mediaFragment_to_playerFragment, args)
             }
         }
+        )
         binding.favoritesRecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.favoritesRecycler.adapter = adapter
     }
@@ -69,12 +70,13 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 binding.emptyFavoritesContainer.visibility = View.GONE
                 binding.favoritesRecycler.visibility = View.VISIBLE
 
-                adapter = TrackAdapter(state.tracks) { track ->
+                adapter = TrackAdapter(state.tracks, onClick = { track ->
                     if (clickDebounce()) {
                         val args = bundleOf(PlayerFragment.ARG_TRACK to track)
                         findNavController().navigate(R.id.action_mediaFragment_to_playerFragment, args)
                     }
                 }
+                )
                 binding.favoritesRecycler.adapter = adapter
             }
         }
