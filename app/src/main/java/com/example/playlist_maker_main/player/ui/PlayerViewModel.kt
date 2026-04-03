@@ -89,7 +89,7 @@ class PlayerViewModel(
             viewModelScope.launch {
                 playlistInteractor.addTrackToPlaylist(track, playlist)
                 _addingResult.postValue("Добавлено в плейлист ${playlist.name}" to true)
-                getPlaylists() // Обновляем список, чтобы счетчик треков изменился
+                getPlaylists()
             }
         }
     }
