@@ -1,10 +1,20 @@
 package com.example.playlist_maker_main.player.ui
 
+import android.Manifest
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -30,14 +40,44 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
     private lateinit var track: Track
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
+
+    private var serviceConnection: ServiceConnection? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         track = requireArguments().getParcelable(ARG_TRACK)!!
+
+        serviceConnection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                val binder = service as AudioPlayerService.LocalBinder
+                viewModel.setAudioPlayerControl(binder.getService())
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                viewModel.removeAudioPlayerControl()
+            }
+        }
+
+        val intent = Intent(requireContext(), AudioPlayerService::class.java).apply {
+            putExtra("URL", track.previewUrl)
+            putExtra("TRACK_NAME", track.trackName)
+            putExtra("ARTIST_NAME", track.artistName)
+        }
+        requireContext().bindService(intent, serviceConnection!!, Context.BIND_AUTO_CREATE)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentPlayerBinding.bind(view)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
 
         setupBottomSheet()
         initObservers()
@@ -57,6 +97,28 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
         }
 
         viewModel.init(track)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.onAppForegrounded()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.onAppBackgrounded()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceConnection?.let {
+            requireContext().unbindService(it)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun setupBottomSheet() {
@@ -100,9 +162,7 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
 
     private fun render(state: PlayerScreenState) = with(binding) {
         playBtn.isEnabled = state.isPlayButtonEnabled
-
-        playBtn.setState(state.isPlaying)
-
+        playBtn.setState(state.isPlaying) // Метод из прошлой задачи с CustomView
         trackTime.text = state.currentPositionText
         if (!state.errorMessage.isNullOrBlank()) {
             Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_SHORT).show()
@@ -135,15 +195,5 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
         label.visibility = if (has) View.VISIBLE else View.GONE
         valueView.visibility = if (has) View.VISIBLE else View.GONE
         if (has) valueView.text = value
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.onStopView()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

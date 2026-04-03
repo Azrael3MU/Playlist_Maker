@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:name="com.example.playlist_maker_main.App"
@@ -16,6 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
         tools:targetApi="31">
+
         <activity
             android:name=".main.ui.MainActivity"
             android:exported="true"
@@ -31,6 +35,10 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize"/>
 
-    </application>
+        <service
+            android:name=".player.ui.AudioPlayerService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="false"/>
 
+    </application>
 </manifest>
