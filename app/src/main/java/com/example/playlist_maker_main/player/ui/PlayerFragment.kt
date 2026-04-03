@@ -12,7 +12,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlist_maker_main.R
 import com.example.playlist_maker_main.databinding.FragmentPlayerBinding
-import com.example.playlist_maker_main.media.ui.playlists.PlaylistAdapterBS // Специальный адаптер для BottomSheet
+import com.example.playlist_maker_main.media.ui.playlists.PlaylistAdapterBS
 import com.example.playlist_maker_main.search.domain.model.Track
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -100,7 +100,9 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
 
     private fun render(state: PlayerScreenState) = with(binding) {
         playBtn.isEnabled = state.isPlayButtonEnabled
-        binding.playBtn.setImageResource(if (state.isPlaying) R.drawable.pause_btn else R.drawable.play_btn)
+
+        playBtn.setState(state.isPlaying)
+
         trackTime.text = state.currentPositionText
         if (!state.errorMessage.isNullOrBlank()) {
             Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_SHORT).show()
