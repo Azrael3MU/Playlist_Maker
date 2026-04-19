@@ -59,11 +59,6 @@ class SearchViewModel(
         }
     }
 
-    fun onClearHistoryClicked() {
-        historyInteractor.clear()
-        _state.value = SearchScreenState.History(emptyList())
-    }
-
     fun onTrackClicked(track: Track) {
         viewModelScope.launch {
             val currentHistory = historyInteractor.get()
@@ -72,13 +67,18 @@ class SearchViewModel(
         }
     }
 
+    fun onClearHistoryClicked() {
+        historyInteractor.clear()
+        _state.postValue(SearchScreenState.History(emptyList()))
+    }
+
     private fun showHistory() {
         viewModelScope.launch {
             val list = historyInteractor.get()
             if (list.isEmpty()) {
-                _state.value = SearchScreenState.Idle
+                _state.postValue(SearchScreenState.Idle)
             } else {
-                _state.value = SearchScreenState.History(list)
+                _state.postValue(SearchScreenState.History(list))
             }
         }
     }
@@ -94,7 +94,7 @@ class SearchViewModel(
     private fun searchRequest(query: String) {
         if (query.isEmpty()) return
 
-        _state.value = SearchScreenState.Loading
+        _state.postValue(SearchScreenState.Loading)
 
         viewModelScope.launch {
             searchInteractor.searchTracks(query)
@@ -105,15 +105,14 @@ class SearchViewModel(
     }
 
     private fun processResult(foundTracks: List<Track>?, errorMessage: String?) {
-        val tracks = foundTracks
-        if (tracks != null) {
-            if (tracks.isEmpty()) {
-                _state.value = SearchScreenState.EmptyResult
+        if (foundTracks != null) {
+            if (foundTracks.isEmpty()) {
+                _state.postValue(SearchScreenState.EmptyResult)
             } else {
-                _state.value = SearchScreenState.Content(tracks)
+                _state.postValue(SearchScreenState.Content(foundTracks))
             }
         } else {
-            _state.value = SearchScreenState.Error
+            _state.postValue(SearchScreenState.Error)
         }
     }
 }

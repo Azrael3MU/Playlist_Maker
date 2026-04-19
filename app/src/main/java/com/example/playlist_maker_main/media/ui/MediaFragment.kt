@@ -1,42 +1,50 @@
 package com.example.playlist_maker_main.media.ui
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.viewpager2.widget.ViewPager2
+import androidx.navigation.fragment.findNavController
 import com.example.playlist_maker_main.R
-import com.example.playlist_maker_main.databinding.FragmentMediaBinding
-import com.example.playlist_maker_main.media.ui.adapter.MediaPagerAdapter
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
+import com.example.playlist_maker_main.media.ui.favorites.FavoritesViewModel
+import com.example.playlist_maker_main.media.ui.playlists.PlaylistsViewModel
+import com.example.playlist_maker_main.player.ui.PlayerFragment
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class MediaFragment : Fragment(R.layout.fragment_media) {
+class MediaFragment : Fragment() {
 
-    private val viewModel: MediaViewModel by viewModel()
+    private val favoritesViewModel: FavoritesViewModel by viewModel()
+    private val playlistsViewModel: PlaylistsViewModel by viewModel()
 
-    private var _binding: FragmentMediaBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentMediaBinding.bind(view)
-
-        val tabLayout: TabLayout = binding.tabLayoutMedia
-        val viewPager: ViewPager2 = binding.viewPagerMedia
-
-        viewPager.adapter = MediaPagerAdapter(this)
-
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> getString(R.string.favorites_tracks)
-                else -> getString(R.string.playlists)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            setContent {
+                MediaScreen(
+                    favoritesViewModel = favoritesViewModel,
+                    playlistsViewModel = playlistsViewModel,
+                    onNavigateToNewPlaylist = {
+                        findNavController().navigate(R.id.action_mediaFragment_to_newPlaylistFragment)
+                    },
+                    onNavigateToPlayer = { track ->
+                        val args = bundleOf(PlayerFragment.ARG_TRACK to track)
+                        findNavController().navigate(R.id.action_mediaFragment_to_playerFragment, args)
+                    },
+                    onNavigateToPlaylistDetails = { playlistId ->
+                        val bundle = bundleOf("playlistId" to playlistId)
+                        findNavController().navigate(R.id.action_PlaylistFragment_to_PlaylistDetailsFragment, bundle)
+                    }
+                )
             }
-        }.attach()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+        }
     }
 }
