@@ -5,14 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlist_maker_main.media.domain.db.FavoritesInteractor
-import com.example.playlist_maker_main.media.domain.db.PlaylistInteractor // Импорт нового интерактора
+import com.example.playlist_maker_main.media.domain.db.PlaylistInteractor
 import com.example.playlist_maker_main.media.domain.model.Playlist
 import com.example.playlist_maker_main.search.domain.model.Track
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 class PlayerViewModel(
     private val favoritesInteractor: FavoritesInteractor,
@@ -31,10 +27,9 @@ class PlayerViewModel(
     private val _addingResult = MutableLiveData<Pair<String, Boolean>>()
     val addingResult: LiveData<Pair<String, Boolean>> = _addingResult
 
-    private var mediaPlayer: android.media.MediaPlayer? = null
     private var currentTrack: Track? = null
-    private var timerJob: Job? = null
-    private val timeFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
+
+    private var audioPlayerControl: AudioPlayerControl? = null
 
     fun init(track: Track) {
         this.currentTrack = track
@@ -48,28 +43,26 @@ class PlayerViewModel(
 
         if (track.previewUrl.isNullOrBlank()) {
             _state.value = PlayerScreenState(isPlayButtonEnabled = false, currentPositionText = "00:00")
-            return
         }
+    }
 
-        releasePlayer()
-        val mp = android.media.MediaPlayer()
-        mediaPlayer = mp
-        mp.setAudioAttributes(android.media.AudioAttributes.Builder()
-            .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
-            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC).build())
+    fun setAudioPlayerControl(control: AudioPlayerControl) {
+        audioPlayerControl = control
 
-        mp.setOnPreparedListener { _state.postValue(_state.value?.copy(isPlayButtonEnabled = true)) }
-        mp.setOnCompletionListener {
-            timerJob?.cancel()
-            _state.postValue(_state.value?.copy(isPlaying = false, currentPositionText = "00:00"))
+        viewModelScope.launch {
+            control.getPlayerState().collect { serviceState ->
+                val currentState = _state.value ?: PlayerScreenState()
+                _state.value = currentState.copy(
+                    isPlayButtonEnabled = serviceState.isPrepared,
+                    isPlaying = serviceState.isPlaying,
+                    currentPositionText = serviceState.currentPositionText
+                )
+            }
         }
+    }
 
-        try {
-            mp.setDataSource(track.previewUrl)
-            mp.prepareAsync()
-        } catch (e: Exception) {
-            _state.postValue(PlayerScreenState(isPlayButtonEnabled = false))
-        }
+    fun removeAudioPlayerControl() {
+        audioPlayerControl = null
     }
 
     fun getPlaylists() {
@@ -110,55 +103,22 @@ class PlayerViewModel(
     }
 
     fun onPlayClicked() {
-        val mp = mediaPlayer ?: return
         if (_state.value?.isPlaying == true) {
-            mp.pause()
-            timerJob?.cancel()
-            _state.value = _state.value?.copy(isPlaying = false)
+            audioPlayerControl?.pausePlayer()
         } else {
-            mp.start()
-            _state.value = _state.value?.copy(isPlaying = true)
-            startTimer()
+            audioPlayerControl?.startPlayer()
         }
     }
 
-    fun onStopView() {
-        if (_state.value?.isPlaying == true) {
-            mediaPlayer?.pause()
-            timerJob?.cancel()
-            _state.value = _state.value?.copy(isPlaying = false)
-        }
+    fun onAppBackgrounded() {
+        audioPlayerControl?.showNotification()
+    }
+
+    fun onAppForegrounded() {
+        audioPlayerControl?.hideNotification()
     }
 
     fun onErrorShown() {
         _state.value = _state.value?.copy(errorMessage = null)
-    }
-
-    private fun startTimer() {
-        timerJob = viewModelScope.launch {
-            while (_state.value?.isPlaying == true) {
-                mediaPlayer?.let { mp ->
-                    if (mp.isPlaying) {
-                        _state.value = _state.value?.copy(currentPositionText = timeFormat.format(mp.currentPosition))
-                    }
-                }
-                delay(300L)
-            }
-        }
-    }
-
-    private fun releasePlayer() {
-        timerJob?.cancel()
-        mediaPlayer?.release()
-        mediaPlayer = null
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        releasePlayer()
-    }
-
-    companion object {
-        private const val UPDATE_PERIOD_MS = 300L
     }
 }
