@@ -16,7 +16,7 @@ object RetrofitProvider {
 
     val api: ITunesApi by lazy {
         Retrofit.Builder()
-            .baseUrl("https://itunes.apple.com")
+            .baseUrl("https://itunes.apple.com/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
